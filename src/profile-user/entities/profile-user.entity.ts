@@ -1,5 +1,6 @@
-import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { User } from "src/users/entities/user.entity";
 
 @Entity()
 export class ProfileUser {
@@ -10,25 +11,14 @@ export class ProfileUser {
     userId : number;
 
     @Column({length : 255})
-    username : string;
-
-    @Column({length : 255})
     email : string;
 
     @Column({nullable : true})
     noHp : string;
-
-    @Column({nullable : true})
-    sekolah : string;
-
-    @Column({nullable : true})
-    provinsi : string;
-
-    @Column({nullable : true})
-    kota : string;
-
-    @Column({nullable : true})
-    kelurahan : string;
+    
+    @OneToOne(() => User, user => user.profile)
+    @JoinColumn()
+    user: User;
 
     @CreateDateColumn({ type: 'timestamp'})
     createdAt: Date;

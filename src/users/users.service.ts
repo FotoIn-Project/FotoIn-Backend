@@ -5,61 +5,49 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { ProfileUserService } from 'src/profile-user/profile-user.service';
 import { AuthService } from 'src/auth/auth.service';
+import { ProfileUser } from 'src/profile-user/entities/profile-user.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
-    private readonly userProfileService : ProfileUserService,
-    private readonly authService : AuthService,
+    // private readonly userProfileService : ProfileUserService,
+    // private readonly authService : AuthService,
   ) {}
 
-  //create user
-  async create(createUserDto: CreateUserDto) {
-    const existUser = await this.findByEmail(createUserDto.email);
-    if (existUser) {
-      throw new HttpException({
-        errorField: true,
-        nameField: 'email',
-        errorAllert: false,
-        message: 'email already exists',
-      }, HttpStatus.BAD_REQUEST);
-    }
+  async createUser(createUserDto: any): Promise<User> {
+    const queryRunner = this.usersRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    const user = this.usersRepository.create(createUserDto)
-    
     try {
+      // Create user
+      const user = new User();
+      user.email = createUserDto.username;
+      user.password = createUserDto.password;
 
-      const createdUser = await this.usersRepository.save(user)
-      
-      const userProfile = await this.userProfileService.create({
-        userId: createdUser.id,
-        email : createdUser.email,
-        username : createdUser.username
-      });
+      const savedUser = await queryRunner.manager.save(user);
 
-      const token = await this.authService.generateToken(createdUser.id.toString());
+      // Create user profile
+      const userProfile = new ProfileUser();
+      // userProfile.firstName = createUserDto.firstName;
+      // userProfile.lastName = createUserDto.lastName;
+      userProfile.user = savedUser;
 
-      try {
-        await this.authService.sendVerificationEmail(createdUser.email, token);
-      } catch (emailError) {
+      await queryRunner.manager.save(userProfile);
 
-        // Hapus pengguna yang baru saja dibuat
-        await this.usersRepository.delete(createdUser.id);
-        await this.userProfileService.remove(userProfile.id)
-
-        throw new HttpException({
-          message: 'Error sending verification email',
-        }, HttpStatus.INTERNAL_SERVER_ERROR);
-        
-      }
-
-      return createdUser;
+      await queryRunner.commitTransaction();
+      return savedUser;
     } catch (error) {
-      throw error;
+      await queryRunner.rollbackTransaction();
+      throw new HttpException('Error creating user', HttpStatus.INTERNAL_SERVER_ERROR);
+    } finally {
+      await queryRunner.release();
     }
   }
+
+
 
   //get all user
   async findAll(): Promise<User[]> {

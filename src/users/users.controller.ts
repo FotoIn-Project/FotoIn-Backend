@@ -12,7 +12,7 @@ export class UsersController {
   @UsePipes(new ValidationPipe())
   async create(@Body() createUserDto: CreateUserDto) {
     try {
-      const user = await this.usersService.create(createUserDto);
+      const user = await this.usersService.createUser(createUserDto);
       return user;
     } catch (error) {
       throw error
@@ -30,11 +30,6 @@ export class UsersController {
   findOne(@Param('id') id: number) {
     return this.usersService.findById(id);
   }
-
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-  //   return this.usersService.update(+id, updateUserDto);
-  // }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {

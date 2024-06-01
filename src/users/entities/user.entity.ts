@@ -1,13 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, BeforeInsert } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, BeforeInsert, OneToOne } from "typeorm";
+import { ProfileUser } from "src/profile-user/entities/profile-user.entity";
 import * as bcrypt from 'bcrypt';
 
 @Entity()
 export class User {
     @PrimaryGeneratedColumn({type : "bigint"})
     id: number;
-
-    @Column({length : 255})
-    username : string;
 
     @Column({length : 255})
     email : string;
@@ -18,6 +16,10 @@ export class User {
     @Column({default : false})
     isVerified : boolean;
 
+    @OneToOne(() => ProfileUser, profile => profile.user)
+    profile: ProfileUser;
+
+    //auditor
     @CreateDateColumn({ type: 'timestamp'})
     createdAt: Date;
 

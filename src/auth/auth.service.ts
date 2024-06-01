@@ -83,8 +83,7 @@ export class AuthService {
             return { 
                 token: token, 
                 email : user.email,
-                username : user.username,
-                role : user.role
+                // username : user.username,
             };
         } catch (error) {
             throw error;
