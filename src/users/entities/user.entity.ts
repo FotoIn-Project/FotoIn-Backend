@@ -36,9 +36,4 @@ export class User {
     generateProfileId() {
         this.id = new Date().valueOf();
     }
-
-    @BeforeInsert()
-    async hashPassword() {
-        this.password = await bcrypt.hash(this.password, 10)
-    }
 }

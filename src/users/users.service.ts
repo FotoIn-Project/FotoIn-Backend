@@ -56,6 +56,7 @@ export class UsersService {
         statusCode: HttpStatus.CREATED,
       };
     } catch (error) {
+      console.log(error);
       await queryRunner.rollbackTransaction();
       throw new HttpException('Error creating user', HttpStatus.INTERNAL_SERVER_ERROR);
     } finally {
