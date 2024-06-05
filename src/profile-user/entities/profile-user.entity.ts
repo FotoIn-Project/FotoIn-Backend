@@ -7,22 +7,37 @@ export class ProfileUser {
     @PrimaryGeneratedColumn({type : 'bigint'})
     id : number;
 
-    @Column({type : "bigint"})
-    userId : number;
-
-    @Column({length : 255})
-    email : string;
+    @Column({nullable : true})
+    company_name : string;
 
     @Column({nullable : true})
-    noHp : string;
+    province : string;
+
+    @Column({nullable : true})
+    city : string;
+
+    @Column({nullable : true})
+    address : string;
+
+    @Column({nullable : true})
+    phone_number : string;
+
+    @Column({nullable : true})
+    email_confirmation : string;
     
     @OneToOne(() => User, user => user.profile)
     @JoinColumn()
     user: User;
 
     @CreateDateColumn({ type: 'timestamp'})
-    createdAt: Date;
+    created_at: Date;
+
+    @Column({default : "SYSTEM"})
+    created_by : string;
 
     @UpdateDateColumn({ type: 'timestamp'})
-    updatedAt: Date;
+    updated_at: Date;
+
+    @Column({default : "SYSTEM"})
+    updated_by : string;
 }

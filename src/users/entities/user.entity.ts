@@ -14,23 +14,23 @@ export class User {
     password : string;
 
     @Column({default : false})
-    isVerified : boolean;
+    is_verified : boolean;
 
     @OneToOne(() => ProfileUser, profile => profile.user)
     profile: ProfileUser;
 
     //auditor
     @CreateDateColumn({ type: 'timestamp'})
-    createdAt: Date;
+    created_at: Date;
 
     @Column({default : "SYSTEM"})
-    createdBy : string;
+    created_by : string;
 
     @UpdateDateColumn({ type: 'timestamp'})
-    updatedAt: Date;
+    updated_at: Date;
 
     @Column({default : "SYSTEM"})
-    updatedBy : string;
+    updated_by : string;
 
     @BeforeInsert()
     generateProfileId() {
