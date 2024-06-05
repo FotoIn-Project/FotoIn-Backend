@@ -10,6 +10,7 @@ import { UsersService } from 'src/users/users.service';
 import { v4 as uuid } from 'uuid';
 import * as bcrypt from 'bcrypt';
 import { EmailService } from 'src/utils/email/email.service';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -64,7 +65,7 @@ export class AuthService {
         throw new HttpException('Failed to generate reset token', HttpStatus.INTERNAL_SERVER_ERROR);
       }
 
-      const resetLink = `https://yourapp.com/reset-password/${token}`; // TODO change link
+      const resetLink = `https://yourapp.com/reset-password?resetToken=${token}`; // TODO change link
       await this.emailService.sendVerificationEmail(email, resetLink);
 
       return { message: 'Forgot password email has been sent to your email address' };
@@ -76,6 +77,31 @@ export class AuthService {
       );
     }
   }
+
+  async resetPassword(resetPassword: ResetPasswordDto): Promise<{ message: string }> {
+    const { resetToken, newPassword } = resetPassword;
+
+    try {
+      const user = await this.userService.findByResetToken(resetToken);
+      if (!user) {
+        throw new HttpException('Invalid or expired reset token', HttpStatus.UNAUTHORIZED);
+      }
+
+      user.password = await bcrypt.hash(newPassword, 10);
+      user.reset_password_token = null;
+      await this.usersRepository.save(user);
+
+      return { message: 'Password has been reset successfully' };
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        'Failed to reset password',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+
 
   async validatePassword(user: User, password: string): Promise<boolean> {
     return await bcrypt.compare(password, user.password);

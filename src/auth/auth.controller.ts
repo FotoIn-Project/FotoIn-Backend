@@ -5,6 +5,7 @@ import { UsersService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -40,6 +41,17 @@ export class AuthController {
   async forgotPassword(@Body() forgotPassword : ForgotPasswordDto ): Promise<any> {
     try {
       return await this.authService.forgotPassword(forgotPassword);
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+  }
+
+  @Post('reset-password')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  async resetPassword(@Body() resetPassword : ResetPasswordDto ): Promise<any> {
+    try {
+      return await this.authService.resetPassword(resetPassword);
     } catch (error) {
         console.log(error);
         throw error;
