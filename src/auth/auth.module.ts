@@ -7,11 +7,12 @@ import { User } from 'src/users/entities/user.entity';
 import { ProfileUserService } from 'src/profile-user/profile-user.service';
 import { ProfileUser } from 'src/profile-user/entities/profile-user.entity';
 import { UsersModule } from 'src/users/users.module';
+import { EmailService } from 'src/utils/email/email.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, ProfileUser])],
   controllers: [AuthController],
-  providers: [AuthService, UsersService, ProfileUserService],
+  providers: [AuthService, UsersService, ProfileUserService, EmailService],
   exports : []
 })
 export class AuthModule {}

@@ -1,11 +1,14 @@
-import { Controller, Get, Param, Body } from '@nestjs/common';
-import { Post } from '@nestjs/common/decorators';
+import { Controller, Get, Param, Body, ValidationPipe } from '@nestjs/common';
+import { Post, UsePipes } from '@nestjs/common/decorators';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { UsersService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
 export class AuthController {
     constructor(
         private readonly authService : AuthService,
+        private readonly usersService: UsersService,
     ){}
 
     @Get("verify/:token")
@@ -57,4 +60,14 @@ export class AuthController {
         throw error;
     }
    }
+
+    @Post('sign-up')
+    @UsePipes(new ValidationPipe({ whitelist: true }))
+    async signUp(@Body() createUserDto: CreateUserDto): Promise<any> {
+    try {
+        return await this.usersService.createUser(createUserDto);
+    } catch (error) {
+        throw error;
+    }
+  }
 }
