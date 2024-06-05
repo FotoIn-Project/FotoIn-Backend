@@ -1,23 +1,28 @@
 const jwt = require('jsonwebtoken');
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UnauthorizedException } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 import { LoginUserDto } from './dto/login-user.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { UsersService } from 'src/users/users.service';
+import { v4 as uuid } from 'uuid';
+import * as bcrypt from 'bcrypt';
+import { EmailService } from 'src/utils/email/email.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    private readonly userService: UsersService,
+    private readonly emailService: EmailService,
   ) {}
 
   //feature login
-  async login(loginUserDto : LoginUserDto): Promise<any> {
-    const { email, password} = loginUserDto;
+  async login(loginUserDto: LoginUserDto): Promise<any> {
+    const { email, password } = loginUserDto;
 
     // Check if email is registered
     const user = await this.usersRepository.findOne({ where: { email } });
@@ -31,70 +36,51 @@ export class AuthService {
     // Verify the password
     const isPasswordValid = await this.validatePassword(user, password);
     if (!isPasswordValid) {
-      throw new HttpException(
-        'Invalid password',
-        HttpStatus.UNAUTHORIZED,
-      );
+      throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
     }
 
     if (!user.is_verified) {
-        throw new HttpException(
-          'User is not verified',
-          HttpStatus.UNAUTHORIZED,
-        );
-      }
+      throw new HttpException('User is not verified', HttpStatus.UNAUTHORIZED);
+    }
 
     // Generate JWT token
-    const accessToken = await this.generateToken(user.id.toString());    
+    const accessToken = await this.generateToken(user.id.toString());
 
     return { accessToken };
   }
 
-  //feature verification user
-  async getStatusUser(token: string) {
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<{ message: string }> {
+    const { email } = forgotPasswordDto;
     try {
-      const decodedToken = await this.verifyJwtToken(token);
-
-      // const user = await this.findUserById(decodedToken.userId)
-
-      return {
-        token,
-        // isVerified : user.is_verified
-      };
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async verifyUser(token: string) {
-    try {
-      const decodedToken = await this.verifyJwtToken(token);
-
-      // Retrieve user by userId
-      // const user = await this.findUserById(decodedToken.userId);
-
-      // Check if the user is already verified
-      // if (user.is_verified) {
-      //     throw new HttpException('User is already verified', HttpStatus.BAD_REQUEST);
-      // }
-
-      // // Update user's is_verified status to true
-      // user.is_verified = true;
-      // await this.usersRepository.save(user);
-
-      return { message: 'User verified successfully' };
-    } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        return { error: 'Invalid token' };
+      const user = await this.userService.findByEmail(email);
+      if (!user) {
+        throw new HttpException('Email not found', HttpStatus.NOT_FOUND);
       }
-      throw error;
+
+      const token = uuid();
+      const saveTokenFailed = await this.userService.saveResetPasswordToken(user.id, token);
+
+      if (saveTokenFailed) {
+        throw new HttpException('Failed to generate reset token', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+
+      const resetLink = `https://yourapp.com/reset-password/${token}`; // TODO change link
+      await this.emailService.sendVerificationEmail(email, resetLink);
+
+      return { message: 'Forgot password email has been sent to your email address' };
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        'Failed to process forgot password request',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
   async validatePassword(user: User, password: string): Promise<boolean> {
     return await bcrypt.compare(password, user.password);
   }
-  
+
   //token function
   async generateToken(userId: string) {
     try {

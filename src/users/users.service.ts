@@ -96,4 +96,28 @@ export class UsersService {
   async findByEmail(email: string): Promise<User> {
     return await this.usersRepository.findOne({ where: { email } });
   }
+
+  async saveResetPasswordToken(id: number, token: string): Promise<boolean> {
+    try {
+      const user = await this.usersRepository.findOne({ where: { id } });
+      if (user) {
+        user.reset_password_token = token;
+        await this.usersRepository.save(user);
+        return false; // Berhasil
+      } else {
+        return true; // Gagal, user tidak ditemukan
+      }
+    } catch (error) {
+      console.error('Failed to save reset password token:', error);
+      return true; // Gagal karena error
+    }
+  }
+
+  async removeResetToken(userId: any): Promise<void> {
+    const user = await this.usersRepository.findOne(userId);
+    if (user) {
+      user.reset_password_token = null;
+      await this.usersRepository.save(user);
+    }
+  }
 }

@@ -16,6 +16,9 @@ export class User {
     @Column({default : false})
     is_verified : boolean;
 
+    @Column({nullable : true})
+    reset_password_token : string;
+
     @OneToOne(() => ProfileUser, profile => profile.user)
     profile: ProfileUser;
 
