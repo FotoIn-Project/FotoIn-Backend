@@ -40,4 +40,9 @@ export class ProfileUser {
 
     @Column({default : "SYSTEM"})
     updated_by : string;
+
+    @BeforeInsert()
+    generateProfileId() {
+        this.id = new Date().valueOf();
+    }
 }

@@ -8,6 +8,7 @@ import { User } from './users/entities/user.entity';
 import { ProfileUser } from './profile-user/entities/profile-user.entity';
 import { DataSource } from 'typeorm';
 import { EmailService } from './utils/email/email.service';
+import { JwtService } from './utils/jwt/jwt.service';
 
 @Module({
   imports: [
@@ -31,7 +32,7 @@ import { EmailService } from './utils/email/email.service';
     AuthModule,
   ],
   controllers: [],
-  providers: [EmailService],
+  providers: [EmailService, JwtService],
 })
 export class AppModule {
   constructor(private dataSource: DataSource) {}

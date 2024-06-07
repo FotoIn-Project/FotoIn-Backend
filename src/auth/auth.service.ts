@@ -1,6 +1,4 @@
-const jwt = require('jsonwebtoken');
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -11,6 +9,7 @@ import { v4 as uuid } from 'uuid';
 import * as bcrypt from 'bcrypt';
 import { EmailService } from 'src/utils/email/email.service';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { JwtService } from 'src/utils/jwt/jwt.service';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +18,7 @@ export class AuthService {
     private readonly usersRepository: Repository<User>,
     private readonly userService: UsersService,
     private readonly emailService: EmailService,
+    private readonly jwtService : JwtService
   ) {}
 
   //feature login
@@ -45,7 +45,7 @@ export class AuthService {
     }
 
     // Generate JWT token
-    const accessToken = await this.generateToken(user.id.toString());
+    const accessToken = await this.jwtService.generateToken(user.id.toString());
 
     return { accessToken };
   }
@@ -101,32 +101,8 @@ export class AuthService {
     }
   }
 
-
-
   async validatePassword(user: User, password: string): Promise<boolean> {
     return await bcrypt.compare(password, user.password);
   }
 
-  //token function
-  async generateToken(userId: string) {
-    try {
-      const payload = { userId: userId };
-      const token = jwt.sign(payload, process.env.JWT_SECRECT, {
-        expiresIn: '2h',
-      });
-      return token;
-    } catch (error) {
-      console.log('Error generate token : ', error);
-      throw new Error('Failed to generate token');
-    }
-  }
-
-  async verifyJwtToken(token: string) {
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRECT);
-      return decoded;
-    } catch (error) {
-      throw new UnauthorizedException('Invalid token');
-    }
-  }
 }

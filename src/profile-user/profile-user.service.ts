@@ -1,124 +1,66 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateProfileUserDto } from './dto/create-profile-user.dto';
-import { ProfileUser } from './entities/profile-user.entity'
+import { ProfileUser } from './entities/profile-user.entity';
 import { UpdateProfileUserDto } from './dto/update-profile-user.dto';
+import { AuthService } from 'src/auth/auth.service';
+import { User } from 'src/users/entities/user.entity';
+import { JwtService } from 'src/utils/jwt/jwt.service';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class ProfileUserService {
   constructor(
     @InjectRepository(ProfileUser)
-    private profileUserRepository : Repository<ProfileUser>,
-  ){}
+    private profileUserRepository: Repository<ProfileUser>,
 
-  //create user profile
-  async create(createProfileUserDto: CreateProfileUserDto) {
-    const userProfile = await this.findByEmail(createProfileUserDto.email);
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    private readonly jwtService: JwtService,
+  ) {}
 
-    if(userProfile){
-      throw new HttpException("The user profile already exists", HttpStatus.BAD_REQUEST);
+  async update(
+    id: number,
+    updateProfileUserDto: UpdateProfileUserDto,
+  ): Promise<any> {
+    // // Check if the token is valid and not expired
+    const { accessToken } = updateProfileUserDto;
+    const decoded = await this.jwtService.verifyJwtToken(accessToken);
+
+    // Fetch the user details using the access token
+    const user = await this.userRepository.findOne({where : {id : decoded.id} });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
     }
 
-    const profile = {
-      id : new Date().valueOf(),
-      userId : createProfileUserDto.userId,
-      username : createProfileUserDto.username,
-      email : createProfileUserDto.email
-    }
+    updateProfileUserDto.updated_by = user.email;
 
-    try {
-      return await this.profileUserRepository.save(profile);
-    } catch (error) {
-      throw error
-    }
+    // Update the profile
+    await this.profileUserRepository.update(id, updateProfileUserDto);
+
+    // Return the updated profile
+    return { message: 'Update profile successfully', statusCode: '200' };
   }
 
-  //get all user profile
-  async findAll() {
-    try {
-      const userProfile = await this.profileUserRepository.find()
-      if(!userProfile.length){
-        throw new HttpException("Users Profile Empty", HttpStatus.BAD_REQUEST);
-      }
-      return userProfile;
-    } catch (error) {
-      throw error;
-    }
+  async findByUserId(userId: number): Promise<ProfileUser> {
+    return this.profileUserRepository.findOne({
+      where: { user: { id: userId } },
+    });
   }
 
-  //get user profile by id
-  async findOne(id: number) {
-    try {
-      const userProfile = await this.profileUserRepository.findOne({ where : {id}})
-      if(!userProfile){
-        throw new HttpException("User Profile Empty ", HttpStatus.BAD_REQUEST);
-      }
-      return userProfile
-    } catch (error) {
-      throw error
-    }
-  }
-
-  // update user profile
-  // async update(id: number, updateProfileUserDto: UpdateProfileUserDto) {
-  //   const userProfile = await this.findOne(id);
-
-  //   if (!userProfile) {
-  //       throw new HttpException('User profile not found', HttpStatus.NOT_FOUND);
+  // async getUserByToken(token: string): Promise<any> {
+  //   const decoded = await this.verifyJwtToken(token);
+  //   const user = await this.userService.findById(decoded.userId);
+  //   if (!user) {
+  //     throw new UnauthorizedException('User not found');
   //   }
-
-  //   userProfile.username = updateProfileUserDto.username || userProfile.username;
-  //   userProfile.email = updateProfileUserDto.email || userProfile.email;
-  //   userProfile.noHp = updateProfileUserDto.noHp !== undefined ? updateProfileUserDto.noHp : userProfile.noHp;
-  //   userProfile.sekolah = updateProfileUserDto.sekolah !== undefined ? updateProfileUserDto.sekolah : userProfile.sekolah;
-  //   userProfile.provinsi = updateProfileUserDto.provinsi !== undefined ? updateProfileUserDto.provinsi : userProfile.provinsi;
-  //   userProfile.kota = updateProfileUserDto.kota !== undefined ? updateProfileUserDto.kota : userProfile.kota;
-  //   userProfile.kelurahan = updateProfileUserDto.kelurahan !== undefined ? updateProfileUserDto.kelurahan : userProfile.kelurahan;
-
-  //   try {
-  //       return await this.profileUserRepository.update(id, userProfile);
-  //   } catch (error) {
-  //       throw error;
-  //   }
+  //   return user;
   // }
 
-  async update(id: number, updateProfileUserDto: UpdateProfileUserDto) {
-    const userProfile = await this.findOne(id);
-
-    if (!userProfile) {
-        throw new HttpException('User profile not found', HttpStatus.NOT_FOUND);
-    }
-
-    userProfile.username = updateProfileUserDto.username || userProfile.username;
-    userProfile.email = updateProfileUserDto.email || userProfile.email;
-    userProfile.noHp = updateProfileUserDto.noHp !== undefined ? updateProfileUserDto.noHp : userProfile.noHp;
-    userProfile.sekolah = updateProfileUserDto.sekolah !== undefined ? updateProfileUserDto.sekolah : userProfile.sekolah;
-    userProfile.provinsi = updateProfileUserDto.provinsi !== undefined ? updateProfileUserDto.provinsi : userProfile.provinsi;
-    userProfile.kota = updateProfileUserDto.kota !== undefined ? updateProfileUserDto.kota : userProfile.kota;
-    userProfile.kelurahan = updateProfileUserDto.kelurahan !== undefined ? updateProfileUserDto.kelurahan : userProfile.kelurahan;
-
-    try {
-         await this.profileUserRepository.update(id, userProfile);
-         return this.findOne(id)
-    } catch (error) {
-        throw error;
-    }
-}
-
-
-  
-
-  //delete user profile
-  async remove(id: number) {
-    try {
-      await this.profileUserRepository.delete(id)
-    } catch (error) {
-      throw error
-    }
-  }
-
-  async findByEmail( email : string){
-    return await this.profileUserRepository.findOne({where : {email}})
-  }
 }
