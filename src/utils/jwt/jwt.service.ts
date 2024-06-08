@@ -8,7 +8,7 @@ export class JwtService {
         try {
           const payload = { userId: userId };
           const token = jwt.sign(payload, process.env.JWT_SECRECT, {
-            expiresIn: '2h',
+            expiresIn: '6h',
           });
           return token;
         } catch (error) {
@@ -20,9 +20,12 @@ export class JwtService {
       async verifyJwtToken(token: string) {
         try {
           const decoded = jwt.verify(token, process.env.JWT_SECRECT);
+          console.log(decoded);
           return decoded;
         } catch (error) {
+          console.log(error);
           throw new UnauthorizedException('Invalid token');
         }
       }
+
 }
