@@ -11,13 +11,14 @@ export class ProfileUserController {
 
 
   @Get()
-  findByUserId(@Query('userId') userId: number) {
-    return this.profileUserService.findByUserId(userId);
+  findByUserId(@Query('token') token: string) {
+    return this.profileUserService.findProfileByUserId(token);
   }
 
   @Patch()
-  async updateProfile(@Query('userId') id: string, @Body() updateProfileUserDto: UpdateProfileUserDto) {
-      return this.profileUserService.update(+id, updateProfileUserDto);
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  async updateProfile(@Body() updateProfileUserDto: UpdateProfileUserDto) {
+      return this.profileUserService.updateProfile( updateProfileUserDto);
   }
 
 }

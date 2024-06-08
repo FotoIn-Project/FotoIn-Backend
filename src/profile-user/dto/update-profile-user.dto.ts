@@ -26,10 +26,9 @@ export class UpdateProfileUserDto {
     @IsEmail()
     email_confirmation?: string;
 
-    @IsNotEmpty()
+    @IsNotEmpty() // Jika Anda ingin properti accessToken wajib diisi
     @IsString()
-    @IsNotEmpty()
-    accessToken : string;
+    accessToken: string;
 
     @IsOptional()
     @IsEmail()
