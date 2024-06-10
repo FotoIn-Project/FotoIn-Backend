@@ -9,6 +9,7 @@ import { ProfileUser } from './profile-user/entities/profile-user.entity';
 import { DataSource } from 'typeorm';
 import { EmailService } from './utils/email/email.service';
 import { JwtService } from './utils/jwt/jwt.service';
+import { CatalogModule } from './catalog/catalog.module';
 
 @Module({
   imports: [
@@ -16,11 +17,11 @@ import { JwtService } from './utils/jwt/jwt.service';
       type: 'mysql',
       host: 'localhost',
       port: 3306,
-      username: 'root',
-      password: 'root',
-      database: 'fotoin',
-      entities: [User, ProfileUser],
+      username:  process.env.DATABASE_USERNAME_PROD,
+      password:  process.env.DATABASE_PASSWORD_PROD,
+      database: process.env.DATABASE_NAME_PROD,
       synchronize: true,
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
     }),
     JwtModule.register({
       global: true,
@@ -30,6 +31,7 @@ import { JwtService } from './utils/jwt/jwt.service';
     UsersModule,
     ProfileUserModule,
     AuthModule,
+    CatalogModule,
   ],
   controllers: [],
   providers: [EmailService, JwtService],
