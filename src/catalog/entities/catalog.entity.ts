@@ -1,0 +1,46 @@
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, BeforeInsert } from 'typeorm';
+import { CatalogGallery } from './catalog-gallery.entity';
+
+@Entity()
+export class Catalog {
+    @PrimaryGeneratedColumn({ type: 'bigint' })
+    id: number;
+
+    @Column()
+    title: string;
+
+    @Column('decimal', { precision: 10, scale: 2 })
+    price: number;
+
+    @Column()
+    description: string;
+
+    @Column('simple-array')
+    tags: string[];
+
+    @Column('date')
+    availableDate: Date;
+
+    @Column()
+    location: string;
+
+    @OneToMany(() => CatalogGallery, gallery => gallery.catalog, { cascade: true })
+    gallery: CatalogGallery[];
+
+    @CreateDateColumn({ type: 'timestamp' })
+    created_at: Date;
+
+    @UpdateDateColumn({ type: 'timestamp' })
+    updated_at: Date;
+
+    @Column({ default: 'SYSTEM' })
+    created_by: string;
+
+    @Column({ default: 'SYSTEM' })
+    updated_by: string;
+
+    @BeforeInsert()
+    generateProfileId() {
+        this.id = new Date().valueOf();
+    }
+}
