@@ -23,8 +23,8 @@ export class ProfileUserService {
   async updateProfile(updateProfileUserDto: UpdateProfileUserDto,): Promise<any> {
     
     // Check if the token is valid and not expired
-    const { accessToken, ...updateData } = updateProfileUserDto;
-    const decoded = await this.jwtService.verifyJwtToken(accessToken);
+    const { token, ...updateData } = updateProfileUserDto;
+    const decoded = await this.jwtService.verifyJwtToken(token);
 
     // Fetch the user details using the access token
     const user = await this.userRepository.findOne({where : {id : decoded.userId} });

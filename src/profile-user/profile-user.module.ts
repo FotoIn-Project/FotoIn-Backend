@@ -6,10 +6,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { JwtService } from 'src/utils/jwt/jwt.service';
 import { UsersModule } from 'src/users/users.module';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ProfileUser]), UsersModule,],
   controllers: [ProfileUserController],
-  providers: [ProfileUserService, JwtService],
+  providers: [ProfileUserService, JwtService, ConfigService],
 })
 export class ProfileUserModule {}

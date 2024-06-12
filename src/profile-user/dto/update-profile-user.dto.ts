@@ -19,16 +19,15 @@ export class UpdateProfileUserDto {
     address?: string;
 
     @IsOptional()
-    @IsPhoneNumber(null)
     phone_number?: string;
 
     @IsOptional()
     @IsEmail()
     email_confirmation?: string;
 
-    @IsNotEmpty() // Jika Anda ingin properti accessToken wajib diisi
+    @IsNotEmpty()
     @IsString()
-    accessToken: string;
+    token: string;
 
     @IsOptional()
     @IsEmail()
