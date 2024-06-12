@@ -25,6 +25,9 @@ export class Catalog {
     @Column()
     location: string;
 
+    @Column({ type: 'bigint' })
+    ownerId: number;
+
     @OneToMany(() => CatalogGallery, gallery => gallery.catalog, { cascade: true })
     gallery: CatalogGallery[];
 

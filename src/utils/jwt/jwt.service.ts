@@ -10,7 +10,7 @@ export class JwtService {
         try {
           const payload = { userId: userId };
           const token = jwt.sign(payload, "123123123", {    //TODO change secrect
-            expiresIn: '60s',
+            expiresIn: '1h',
           });
           return token;
 

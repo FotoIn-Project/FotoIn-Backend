@@ -4,12 +4,13 @@ import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from './users/users.module';
 import { ProfileUserModule } from './profile-user/profile-user.module';
 import { AuthModule } from './auth/auth.module';
-import { User } from './users/entities/user.entity';
-import { ProfileUser } from './profile-user/entities/profile-user.entity';
 import { DataSource } from 'typeorm';
 import { EmailService } from './utils/email/email.service';
 import { JwtService } from './utils/jwt/jwt.service';
 import { CatalogModule } from './catalog/catalog.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import { ConfigService } from '@nestjs/config/dist';
 
 @Module({
   imports: [
@@ -17,9 +18,12 @@ import { CatalogModule } from './catalog/catalog.module';
       type: 'mysql',
       host: 'localhost',
       port: 3306,
-      username:  process.env.DATABASE_USERNAME_PROD,
-      password:  process.env.DATABASE_PASSWORD_PROD,
-      database: process.env.DATABASE_NAME_PROD,
+      username:  process.env.DATABASE_USERNAME_LOCAL,
+      password:  process.env.DATABASE_PASSWORD_LOCAL,
+      database: process.env.DATABASE_NAME_LOCAL,
+      // username : "root",
+      // password : "root",
+      // database : "fotoin",
       synchronize: true,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
     }),
@@ -28,14 +32,20 @@ import { CatalogModule } from './catalog/catalog.module';
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '1h' },
     }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+  }),
+  CatalogModule,
     UsersModule,
     ProfileUserModule,
     AuthModule,
     CatalogModule,
   ],
   controllers: [],
-  providers: [EmailService, JwtService],
+  providers: [EmailService, JwtService, ConfigService],
 })
+
 export class AppModule {
   constructor(private dataSource: DataSource) {}
 }
