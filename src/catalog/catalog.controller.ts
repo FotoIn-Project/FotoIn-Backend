@@ -35,7 +35,6 @@ export class CatalogController {
         @UploadedFiles() files: { image_1?: Express.Multer.File[], image_2?: Express.Multer.File[], image_3?: Express.Multer.File[], image_4?: Express.Multer.File[], image_5?: Express.Multer.File[] },
     ) {
         try {          
-        
             if (!files.image_1 || files.image_1.length === 0 || files.image_1 == undefined) {
                 throw new InternalServerErrorException('No file uploaded for image_1');
             }
@@ -66,14 +65,19 @@ export class CatalogController {
             // Simpan catalog ke database
             return await this.catalogService.create(createCatalogDto);
         } catch (error) {
-            console.error('Error uploading files:', error);
-            throw new InternalServerErrorException('Failed to upload files', error);
+            throw error
         }
     }
 
     @Get()
-    findAll() {
-        return this.catalogService.findAll();
+    async findAll() {
+        try {
+            const catalogs = await this.catalogService.findAll();
+            return catalogs;
+        } catch (error) {
+            console.error('Error fetching catalogs:', error);
+            throw new InternalServerErrorException('Failed to fetch catalogs');
+        }
     }
 
     @Get(':id')

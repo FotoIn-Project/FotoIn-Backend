@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, BeforeInsert } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, BeforeInsert, ManyToOne } from 'typeorm';
 import { CatalogGallery } from './catalog-gallery.entity';
+import { Category } from './category.entity';
 
 @Entity()
 export class Catalog {
@@ -26,6 +27,9 @@ export class Catalog {
 
     @OneToMany(() => CatalogGallery, gallery => gallery.catalog, { cascade: true })
     gallery: CatalogGallery[];
+
+    @ManyToOne(() => Category, category => category.catalogs)
+    category: Category;
 
     @CreateDateColumn({ type: 'timestamp' })
     created_at: Date;

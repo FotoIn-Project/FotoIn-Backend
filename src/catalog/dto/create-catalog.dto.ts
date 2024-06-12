@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsArray, IsDateString } from 'class-validator';
+import { IsString, IsNumber, IsArray, IsDateString, IsNotEmpty } from 'class-validator';
 
 export class CreateCatalogDto {
     @IsString()
@@ -22,6 +22,13 @@ export class CreateCatalogDto {
 
     @IsString()
     location: string;
+
+    @IsNumber()
+    categoryId: number;
+
+    @IsNotEmpty()
+    @IsString()
+    token : string;
 }
 
 
