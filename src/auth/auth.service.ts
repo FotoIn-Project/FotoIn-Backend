@@ -45,9 +45,9 @@ export class AuthService {
     }
 
     // Generate JWT token
-    const accessToken = await this.jwtService.generateToken(user.id.toString());
+    const token = await this.jwtService.generateToken(user.id.toString());
 
-    return { accessToken };
+    return { token };
   }
 
   async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<{ message: string }> {
