@@ -11,6 +11,7 @@ import { CatalogModule } from './catalog/catalog.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { ConfigService } from '@nestjs/config/dist';
+import { PortfolioModule } from './portofolio/portofolio.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { ConfigService } from '@nestjs/config/dist';
     ProfileUserModule,
     AuthModule,
     CatalogModule,
+    PortfolioModule,
   ],
   controllers: [],
   providers: [EmailService, JwtService, ConfigService],
