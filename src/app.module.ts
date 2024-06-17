@@ -12,6 +12,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { ConfigService } from '@nestjs/config/dist';
 import { PortfolioModule } from './portofolio/portofolio.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -19,12 +20,12 @@ import { PortfolioModule } from './portofolio/portofolio.module';
       type: 'mysql',
       host: 'localhost',
       port: 3306,
-      username:  process.env.DATABASE_USERNAME_LOCAL,
-      password:  process.env.DATABASE_PASSWORD_LOCAL,
-      database: process.env.DATABASE_NAME_LOCAL,
-      // username : "root",
-      // password : "root",
-      // database : "fotoin",
+      // username:  process.env.DATABASE_USERNAME_LOCAL,
+      // password:  process.env.DATABASE_PASSWORD_LOCAL,
+      // database: process.env.DATABASE_NAME_LOCAL,
+      username : "root",
+      password : "root",
+      database : "fotoin",
       synchronize: true,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
     }),
@@ -43,6 +44,7 @@ import { PortfolioModule } from './portofolio/portofolio.module';
     AuthModule,
     CatalogModule,
     PortfolioModule,
+    NotificationModule,
   ],
   controllers: [],
   providers: [EmailService, JwtService, ConfigService],

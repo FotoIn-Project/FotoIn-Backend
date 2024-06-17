@@ -12,7 +12,7 @@ export class PortofolioController {
   @Post()
   @UseInterceptors(FilesInterceptor('photos', 10, {
     storage: diskStorage({
-      destination: './uploads/portfolio',
+      destination: './uploads/portofolio',
       filename: (req, file, callback) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         const ext = extname(file.originalname);
