@@ -8,9 +8,10 @@ import { Category } from './entities/category.entity';
 import { JwtService } from 'src/utils/jwt/jwt.service';
 import { ConfigService } from '@nestjs/config';
 import { ProfileUser } from 'src/profile-user/entities/profile-user.entity';
+import { Review } from './entities/review.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Catalog, CatalogGallery, Category, ProfileUser])],
+  imports: [TypeOrmModule.forFeature([Catalog, CatalogGallery, Category, ProfileUser, Review])],
   controllers: [CatalogController],
   providers: [CatalogService, JwtService, ConfigService],
 })

@@ -1,6 +1,7 @@
-import { BeforeInsert, Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { User } from "src/users/entities/user.entity";
+import { Review } from "src/catalog/entities/review.entity";
 
 @Entity()
 export class ProfileUser {
@@ -28,6 +29,9 @@ export class ProfileUser {
     @OneToOne(() => User, user => user.profile)
     @JoinColumn()
     user: User;
+
+    @OneToMany(() => Review, review => review.reviewer, { cascade: true })
+    reviews: Review[];
 
     @CreateDateColumn({ type: 'timestamp'})
     created_at: Date;

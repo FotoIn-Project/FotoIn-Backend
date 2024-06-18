@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Param, Delete, UseInterceptors, UploadedFiles, InternalServerErrorException } from '@nestjs/common';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { Controller, Get, Post, Body, Param, Delete, UseInterceptors, UploadedFiles, InternalServerErrorException, UploadedFile, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { CatalogService } from './catalog.service';
 import { CreateCatalogDto } from './dto/create-catalog.dto';
 import { extname } from 'path';
+import { CreateReviewDto } from './dto/create-review.dto';
 
 @Controller('catalog')
 export class CatalogController {
@@ -69,10 +70,40 @@ export class CatalogController {
         }
     }
 
-    @Get()
-    async findAll() {
+    @Post('review')
+    @UseInterceptors(
+        FileInterceptor('photo', {
+            storage: diskStorage({
+                destination: './uploads/reviews',
+                filename: (req, file, cb) => {
+                    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+                    cb(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`);
+                },
+            }),
+        }),
+    )
+    async createReview(
+        @Body() createReviewDto: CreateReviewDto,
+        @UploadedFile() file: Express.Multer.File,
+    ) {
         try {
-            const catalogs = await this.catalogService.findAll();
+            if (!file) {
+                throw new InternalServerErrorException('No file uploaded for photo');
+            }
+            
+            createReviewDto.photo = `/uploads/reviews/${file.filename}`;
+
+            return await this.catalogService.createReview(createReviewDto);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    @Get()
+
+    async findAll(@Query('token') token: string) {
+        try {
+            const catalogs = await this.catalogService.findAll(token);
             return catalogs;
         } catch (error) {
             console.error('Error fetching catalogs:', error);

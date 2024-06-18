@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, BeforeInsert, ManyToOne } from 'typeorm';
 import { CatalogGallery } from './catalog-gallery.entity';
 import { Category } from './category.entity';
+import { Review } from './review.entity';
 
 @Entity()
 export class Catalog {
@@ -33,6 +34,9 @@ export class Catalog {
 
     @ManyToOne(() => Category, category => category.catalogs)
     category: Category;
+
+    @OneToMany(() => Review, review => review.catalog, { cascade: true })
+    reviews: Review[];
 
     @CreateDateColumn({ type: 'timestamp' })
     created_at: Date;

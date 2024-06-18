@@ -8,6 +8,8 @@ import { Category } from './entities/category.entity';
 import { JwtService } from 'src/utils/jwt/jwt.service';
 import { HttpStatus } from '@nestjs/common/enums';
 import { ProfileUser } from 'src/profile-user/entities/profile-user.entity';
+import { CreateReviewDto } from './dto/create-review.dto';
+import { Review } from './entities/review.entity';
 
 @Injectable()
 export class CatalogService {
@@ -20,6 +22,8 @@ export class CatalogService {
         private categoryRepository: Repository<Category>,
         @InjectRepository(ProfileUser)
         private profileUserRepository: Repository<ProfileUser>,
+        @InjectRepository(Review)
+        private reviewRepository: Repository<Review>,
 
         private readonly jwtService : JwtService
     ) {}
@@ -65,19 +69,57 @@ export class CatalogService {
         }
     }
 
-    async findAll(): Promise<any[]> {
-        const catalogs = await this.catalogRepository.find({ relations: ['gallery', 'category'] });
+    async createReview(createReviewDto: CreateReviewDto): Promise<Review> {
+        const { rating, text, photo, catalogId, token } = createReviewDto;
+        
+        // Verify the JWT token
+        const decoded = await this.jwtService.verifyJwtToken(token);
+
+        // Find the catalog by ID
+        const catalog = await this.catalogRepository.findOne({ where: { id: catalogId } });
+        if (!catalog) {
+            throw new HttpException('Catalog not found', HttpStatus.NOT_FOUND);
+        }
+
+        // Find the reviewer by decoded user ID
+        const reviewer = await this.profileUserRepository.findOne({ where: { user: { id: decoded.userId } } });
+        if (!reviewer) {
+            throw new HttpException('Reviewer not found', HttpStatus.NOT_FOUND);
+        }
+
+        // Create the review
+        const review = new Review();
+        review.rating = rating;
+        review.text = text;
+        review.photo = photo;
+        review.catalog = catalog;
+        review.reviewer = reviewer;
+
+        // Save the review to the repository
+        return this.reviewRepository.save(review);
+    }
+
+    async findAll(token: string): Promise<any[]> {
+        await this.jwtService.verifyJwtToken(token);
+        const catalogs = await this.catalogRepository.find({ relations: ['gallery', 'category', 'reviews', 'reviews.reviewer'] });
+
         const results = await Promise.all(catalogs.map(async (catalog) => {
             const profile = await this.profileUserRepository.findOne({ where: { user: { id: catalog.ownerId } } });
+
+            const averageRating = catalog.reviews.length > 0 
+                ? catalog.reviews.reduce((sum, review) => sum + review.rating, 0) / catalog.reviews.length 
+                : 0;
+
             return {
                 ...catalog,
                 owner: {
-                    userId : catalog.ownerId,
-                    company_name : profile ? profile.company_name : null,
-                } 
+                    userId: catalog.ownerId,
+                    company_name: profile ? profile.company_name : null,
+                },
+                averageRating: averageRating.toFixed(2), // Rounded to two decimal places
             };
         }));
-    
+
         return results;
     }
 
