@@ -11,11 +11,9 @@ export class EmailService {
     }
   });
 
-  public async sendVerificationEmail(email: string, token: string): Promise<void> {
+  public async sendVerificationEmail(email: string, verifiedCode: number): Promise<void> {
     const subject = 'Account Verification';
-    const verificationLink = `${process.env.BASE_URL}/verify?token=${token}`;
-    const html = `<p>Click the following link to verify your account:</p><p><a href="${verificationLink}">${verificationLink}</a></p>`;
-
+    const html = `<p>verification code ${verifiedCode}</p>`;
     await this.sendEmail(email, subject, html);
   }
 

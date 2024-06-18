@@ -6,7 +6,6 @@ import { Repository } from 'typeorm';
 import { ProfileUser } from 'src/profile-user/entities/profile-user.entity';
 import { EmailService } from 'src/utils/email/email.service';
 import * as bcrypt from 'bcrypt';
-import { CreateUserResponse } from './dto/create-user-response';
 
 @Injectable()
 export class UsersService {
@@ -16,7 +15,7 @@ export class UsersService {
     private readonly emailService: EmailService, // Assuming AuthService has a method to send verification emails
   ) {}
 
-  async createUser(createUserDto: CreateUserDto): Promise<CreateUserResponse> {
+  async createUser(createUserDto: CreateUserDto): Promise<any> {
     const { email, password} = createUserDto;
 
     // Check if email is already registered
@@ -48,10 +47,14 @@ export class UsersService {
       await queryRunner.commitTransaction();
 
       // Send verification email
-      await this.emailService.sendVerificationEmail("payogot@gmail.com", "test test"); //TODO change token and email
+      await this.emailService.sendVerificationEmail(savedUser.email, savedUser.verified_code); //TODO change token and email
 
       return {
-        data: savedUser,
+        data: {
+          userId : savedUser.id,
+          email: savedUser.email,
+          isVerified : savedUser.is_verified
+        },
         message: 'User created successfully',
         statusCode: HttpStatus.CREATED,
       };

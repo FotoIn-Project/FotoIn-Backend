@@ -13,6 +13,7 @@ import { join } from 'path';
 import { ConfigService } from '@nestjs/config/dist';
 import { PortfolioModule } from './portofolio/portofolio.module';
 import { NotificationModule } from './notification/notification.module';
+import { CartModule } from './cart/cart.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { NotificationModule } from './notification/notification.module';
     CatalogModule,
     PortfolioModule,
     NotificationModule,
+    CartModule,
   ],
   controllers: [],
   providers: [EmailService, JwtService, ConfigService],

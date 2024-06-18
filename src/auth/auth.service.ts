@@ -66,7 +66,7 @@ export class AuthService {
       }
 
       const resetLink = `https://yourapp.com/reset-password?resetToken=${token}`; // TODO change link
-      await this.emailService.sendVerificationEmail(email, resetLink);
+      await this.emailService.sendEmailForgotPassword(email, resetLink);
 
       return { message: 'Forgot password email has been sent to your email address' };
     } catch (error) {

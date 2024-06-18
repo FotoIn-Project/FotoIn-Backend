@@ -1,6 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, BeforeInsert, OneToOne } from "typeorm";
 import { ProfileUser } from "src/profile-user/entities/profile-user.entity";
-import * as bcrypt from 'bcrypt';
 
 @Entity()
 export class User {
@@ -15,6 +14,9 @@ export class User {
 
     @Column({default : false})
     is_verified : boolean;
+
+    @Column()
+    verified_code: number;
 
     @Column({nullable : true})
     reset_password_token : string;
@@ -38,5 +40,10 @@ export class User {
     @BeforeInsert()
     generateProfileId() {
         this.id = new Date().valueOf();
+        this.verified_code = this.generateVerificationCode();
+    }
+
+    private generateVerificationCode(): number {
+        return Math.floor(1000 + Math.random() * 9000);
     }
 }
