@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { VerifyAccountDto } from './dto/verification.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -55,6 +56,17 @@ export class AuthController {
     } catch (error) {
         console.log(error);
         throw error;
+    }
+  }
+
+  @Post('verify-account')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  async verifyAccount(@Body() verifyAccountDto: VerifyAccountDto): Promise<any> {
+    try {
+      return await this.authService.verifyAccount(verifyAccountDto);
+    } catch (error) {
+      console.log(error);
+      throw error;
     }
   }
   

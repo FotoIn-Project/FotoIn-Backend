@@ -10,6 +10,7 @@ import * as bcrypt from 'bcrypt';
 import { EmailService } from 'src/utils/email/email.service';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtService } from 'src/utils/jwt/jwt.service';
+import { VerifyAccountDto } from './dto/verification.dto';
 
 @Injectable()
 export class AuthService {
@@ -76,6 +77,31 @@ export class AuthService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  async verifyAccount(verifyAccountDto: VerifyAccountDto): Promise<any> {
+    const { email, verificationCode } = verifyAccountDto;
+    const user = await this.usersRepository.findOne({ where: { email } });
+
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (user.verified_code !== verificationCode) {
+      throw new HttpException('Invalid verification code', HttpStatus.BAD_REQUEST);
+    }
+
+    user.is_verified = true;
+    await this.usersRepository.save(user);
+
+    return { 
+      statusCode: 200, 
+      message: 'Account verified successfully',
+      data : {
+        userId : user.id,
+        email : user.email,
+      }
+    };
   }
 
   async resetPassword(resetPassword: ResetPasswordDto): Promise<{ message: string }> {
