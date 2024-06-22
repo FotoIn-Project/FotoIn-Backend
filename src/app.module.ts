@@ -14,6 +14,12 @@ import { ConfigService } from '@nestjs/config/dist';
 import { PortfolioModule } from './portofolio/portofolio.module';
 import { NotificationModule } from './notification/notification.module';
 import { CartModule } from './cart/cart.module';
+import { MidtransService } from './midtrans/midtrans.service';
+import { MidtransController } from './midtrans/midtrans.controller';
+import { ChatGateway } from './chat/chat.gateway';
+import { ChatService } from './chat/chat.service';
+import { ChatController } from './chat/chat.controller';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -39,7 +45,7 @@ import { CartModule } from './cart/cart.module';
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',
   }),
-  CatalogModule,
+    CatalogModule,
     UsersModule,
     ProfileUserModule,
     AuthModule,
@@ -47,9 +53,10 @@ import { CartModule } from './cart/cart.module';
     PortfolioModule,
     NotificationModule,
     CartModule,
+    ChatModule,
   ],
-  controllers: [],
-  providers: [EmailService, JwtService, ConfigService],
+  controllers: [MidtransController],
+  providers: [EmailService, JwtService, ConfigService, MidtransService],
 })
 
 export class AppModule {
