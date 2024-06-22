@@ -14,12 +14,8 @@ import { ConfigService } from '@nestjs/config/dist';
 import { PortfolioModule } from './portofolio/portofolio.module';
 import { NotificationModule } from './notification/notification.module';
 import { CartModule } from './cart/cart.module';
-import { MidtransService } from './midtrans/midtrans.service';
-import { MidtransController } from './midtrans/midtrans.controller';
-import { ChatGateway } from './chat/chat.gateway';
-import { ChatService } from './chat/chat.service';
-import { ChatController } from './chat/chat.controller';
 import { ChatModule } from './chat/chat.module';
+import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
   imports: [
@@ -54,9 +50,10 @@ import { ChatModule } from './chat/chat.module';
     NotificationModule,
     CartModule,
     ChatModule,
+    TransactionsModule,
   ],
-  controllers: [MidtransController],
-  providers: [EmailService, JwtService, ConfigService, MidtransService],
+  controllers: [],
+  providers: [EmailService, JwtService, ConfigService],
 })
 
 export class AppModule {
