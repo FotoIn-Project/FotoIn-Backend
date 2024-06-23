@@ -1,5 +1,5 @@
 // reset-password.dto.ts
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class ResetPasswordDto {
   @IsNotEmpty()
@@ -7,6 +7,6 @@ export class ResetPasswordDto {
   newPassword: string;
 
   @IsNotEmpty()
-  @IsString()
-  resetToken: string;
+  @IsNumber()
+  resetToken: number;
 }

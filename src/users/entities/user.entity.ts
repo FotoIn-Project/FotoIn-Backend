@@ -19,7 +19,7 @@ export class User {
     verified_code: number;
 
     @Column({nullable : true})
-    reset_password_token : string;
+    reset_password_token : number;
 
     @OneToOne(() => ProfileUser, profile => profile.user)
     profile: ProfileUser;
