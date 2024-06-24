@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { CatalogGallery } from './catalog-gallery.entity';
 import { Category } from './category.entity';
 import { Review } from './review.entity';
+import { Booking } from 'src/booking/entities/booking.entity';
 
 @Entity()
 export class Catalog {
@@ -37,6 +38,9 @@ export class Catalog {
 
     @OneToMany(() => Review, review => review.catalog, { cascade: true })
     reviews: Review[];
+
+    @OneToMany(() => Booking, booking => booking.catalog)
+    bookings: Booking[];
 
     @CreateDateColumn({ type: 'timestamp' })
     created_at: Date;

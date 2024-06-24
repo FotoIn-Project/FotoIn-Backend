@@ -16,6 +16,7 @@ import { NotificationModule } from './notification/notification.module';
 import { CartModule } from './cart/cart.module';
 import { ChatModule } from './chat/chat.module';
 import { TransactionsModule } from './transactions/transactions.module';
+import { BookingModule } from './booking/booking.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { TransactionsModule } from './transactions/transactions.module';
     CartModule,
     ChatModule,
     TransactionsModule,
+    BookingModule,
   ],
   controllers: [],
   providers: [EmailService, JwtService, ConfigService],
