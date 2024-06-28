@@ -55,6 +55,7 @@ async function bootstrap() {
   } else {
     console.log('Categories already exist, skipping seeder...');
   }
+  // test
 
   // Serve static assets
   app.useStaticAssets(join(__dirname, '..', 'uploads'));
