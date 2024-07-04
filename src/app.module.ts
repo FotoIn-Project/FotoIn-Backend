@@ -6,7 +6,6 @@ import { ProfileUserModule } from './profile-user/profile-user.module';
 import { AuthModule } from './auth/auth.module';
 import { DataSource } from 'typeorm';
 import { EmailService } from './utils/email/email.service';
-import { JwtService } from './utils/jwt/jwt.service';
 import { CatalogModule } from './catalog/catalog.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
@@ -17,6 +16,7 @@ import { CartModule } from './cart/cart.module';
 import { ChatModule } from './chat/chat.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { BookingModule } from './booking/booking.module';
+import { StoreModule } from './store/store.module';
 
 @Module({
   imports: [
@@ -53,9 +53,10 @@ import { BookingModule } from './booking/booking.module';
     ChatModule,
     TransactionsModule,
     BookingModule,
+    StoreModule,
   ],
   controllers: [],
-  providers: [EmailService, JwtService, ConfigService],
+  providers: [EmailService, ConfigService],
 })
 
 export class AppModule {
