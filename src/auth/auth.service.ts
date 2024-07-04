@@ -71,8 +71,7 @@ export class AuthService {
         throw new HttpException('Failed to generate reset token', HttpStatus.INTERNAL_SERVER_ERROR);
       }
 
-      const resetLink = `https://yourapp.com/reset-password?resetToken=${token}`; // TODO change link
-      await this.emailService.sendEmailForgotPassword(email, resetLink);
+      await this.emailService.sendEmailForgotPassword(email, token);
       this.logger.log(`[forgotPassword] Forgot password email sent to ${email}`);
 
       return {statusCode : 200,  message: 'Forgot password email has been sent to your email address' };

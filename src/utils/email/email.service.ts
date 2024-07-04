@@ -17,10 +17,9 @@ export class EmailService {
     await this.sendEmail(email, subject, html);
   }
 
-  public async sendEmailForgotPassword(email: string, token: string): Promise<void> {
+  public async sendEmailForgotPassword(email: string, token: number): Promise<void> {
     const subject = 'Forgot Password';
-    const verificationLink = `${process.env.BASE_URL}/forgot-password?token=${token}`;
-    const html = `<p>Click the following link to change your password:</p><p><a href="${verificationLink}">${verificationLink}</a></p>`;
+    const html = `<p>Forgot Password Token : ${token}</p>`;
 
     await this.sendEmail(email, subject, html);
   }
