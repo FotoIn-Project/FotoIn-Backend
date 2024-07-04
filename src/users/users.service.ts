@@ -117,37 +117,4 @@ export class UsersService {
     return await this.usersRepository.findOne({ where: { email } });
   }
 
-  async findByResetToken(resetToken: number): Promise<User> {
-    this.logger.log(`[findByResetToken] Fetching user with reset token: ${resetToken}`);
-    return await this.usersRepository.findOne({ where: { reset_password_token: resetToken } });
-  }
-
-  async saveResetPasswordToken(id: number, token: number): Promise<boolean> {
-    this.logger.log(`[saveResetPasswordToken] Saving reset password token for user ID: ${id}`);
-    try {
-      const user = await this.usersRepository.findOne({ where: { id } });
-      if (user) {
-        user.reset_password_token = token;
-        await this.usersRepository.save(user);
-        this.logger.log(`[saveResetPasswordToken] Reset password token saved for user ID: ${id}`);
-        return false; // Berhasil
-      } else {
-        this.logger.warn(`[saveResetPasswordToken] User not found with ID: ${id}`);
-        return true; // Gagal, user tidak ditemukan
-      }
-    } catch (error) {
-      this.logger.error(`[saveResetPasswordToken] Failed to save reset password token for user ID: ${id} - ${error.message}`);
-      return true; // Gagal karena error
-    }
-  }
-
-  async removeResetToken(userId: any): Promise<void> {
-    this.logger.log(`[removeResetToken] Removing reset password token for user ID: ${userId}`);
-    const user = await this.usersRepository.findOne(userId);
-    if (user) {
-      user.reset_password_token = null;
-      await this.usersRepository.save(user);
-      this.logger.log(`[removeResetToken] Reset password token removed for user ID: ${userId}`);
-    }
-  }
 }
