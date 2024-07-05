@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Notification } from './entities/notification.entity';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { User } from 'src/users/entities/user.entity';
-import { JwtService } from 'src/utils/jwt/jwt.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class NotificationService {
@@ -16,19 +16,17 @@ export class NotificationService {
     private readonly jwtService: JwtService
   ) {}
 
-  async create(createNotificationDto: CreateNotificationDto): Promise<Notification> {
-    const { token, ...notificationData } = createNotificationDto;
-    const decoded = await this.jwtService.verifyJwtToken(token);
-    const userId = decoded.userId;
+  async create(createNotificationDto: CreateNotificationDto, currentUserId: number): Promise<Notification> {
+    const { ...notificationData } = createNotificationDto;
 
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+    const user = await this.userRepository.findOne({ where: { id: currentUserId } });
     if (!user) {
       throw new Error('User not found');
     }
 
     const notification = this.notificationRepository.create({
       ...notificationData,
-      from: userId.toString(),
+      from: currentUserId,
       createdBy: user.email,
       updatedBy: user.email,
     });
@@ -36,17 +34,12 @@ export class NotificationService {
     return await this.notificationRepository.save(notification);
   }
 
-  async findByTo(token: string): Promise<Notification[]> {
-    const decoded = await this.jwtService.verifyJwtToken(token);
-    const userId = decoded.userId;
-    return await this.notificationRepository.find({ where: { to : userId } });
+  async findByTo(currentUserId: number): Promise<Notification[]> {
+    return await this.notificationRepository.find({ where: { to : currentUserId } });
   }
 
-  async update(id: number, token: string): Promise<Notification> {
-    const decoded = await this.jwtService.verifyJwtToken(token);
-    const userId = decoded.userId;
-    
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+  async update(id: number, currentUserId: number): Promise<Notification> {
+    const user = await this.userRepository.findOne({ where: { id: currentUserId } });
     if (!user) {
       throw new NotFoundException('User not found');
     }

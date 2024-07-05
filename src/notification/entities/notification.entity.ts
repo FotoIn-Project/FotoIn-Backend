@@ -11,11 +11,11 @@ export class Notification {
   @Column()
   body: string;
 
-  @Column()
-  from: string;
+  @Column({ type: 'bigint' })
+  from: number;
 
-  @Column()
-  to: string;
+  @Column({ type: 'bigint'})
+  to: number;
 
   @Column({ default: false })
   isRead: boolean;

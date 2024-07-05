@@ -1,18 +1,20 @@
-import { Controller, Get, Post, Param, Body, Patch, ValidationPipe, UsePipes, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, ValidationPipe, UsePipes, Query, UseGuards, Req } from '@nestjs/common';
 import { NotificationService } from './notification.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { NotificationResponse } from './interface/notification-response.interface';
 import { Notification } from './entities/notification.entity';
-import { query } from 'express';
+import { JwtAuthGuard } from 'src/auth/jwt/jwt.auth.guard';
 
 @Controller('notification')
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  async create(@Body() createNotificationDto: CreateNotificationDto): Promise<NotificationResponse<Notification>> {
-    const result = await this.notificationService.create(createNotificationDto);
+  async create(@Body() createNotificationDto: CreateNotificationDto, @Req() req): Promise<NotificationResponse<Notification>> {
+    const currentUser = req.user;
+    const result = await this.notificationService.create(createNotificationDto, currentUser.id);
     return {
       statusCode: 201,
       message: 'Notification created successfully',
@@ -21,8 +23,10 @@ export class NotificationController {
   }
 
   @Get('to')
-  async findByTo(@Query('token') token: string): Promise<any> {
-    const notifications = await this.notificationService.findByTo(token);
+  @UseGuards(JwtAuthGuard)
+  async findByTo(@Req() req): Promise<any> {
+    const currentUser = req.user;
+    const notifications = await this.notificationService.findByTo(currentUser.id);
     const transformedNotifications = notifications.map(notification => ({
       ...notification,
       elapsedTime: this.getElapsedTime(notification.createdAt),
@@ -35,8 +39,10 @@ export class NotificationController {
   }
 
   @Patch('read')
-  async update(@Query('id') id: number, @Query('token') token: string): Promise<NotificationResponse<Notification>> {
-    const updatedNotification = await this.notificationService.update(id, token);
+  @UseGuards(JwtAuthGuard)
+  async update(@Query('id') id: number, @Req() req): Promise<NotificationResponse<Notification>> {
+    const currentUser = req.user;
+    const updatedNotification = await this.notificationService.update(id, currentUser.id);
     return {
       statusCode: 200,
       message: 'Notification updated successfully',
