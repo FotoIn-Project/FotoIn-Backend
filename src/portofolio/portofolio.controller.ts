@@ -4,6 +4,7 @@ import { CreatePortofolioDto } from './dto/create-portofolio.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { JwtAuthGuard } from 'src/auth/jwt/jwt.auth.guard';
 
 @Controller('portofolio')
 export class PortofolioController {
@@ -29,20 +30,27 @@ export class PortofolioController {
       fileSize: 5 * 1024 * 1024, // 5 MB
     },
   }))
+  @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   async create(
     @Body() createPortfolioDto: CreatePortofolioDto,
     @UploadedFiles() photos: Express.Multer.File[],
-    @Req() req: Request
+    @Req() req
   ) {
-    const token = createPortfolioDto.token; // Get owner from JWT token
+    const currentUser = req.user;
     const photoPaths = photos.map((file) => file.filename);
-    return this.portfolioService.create(createPortfolioDto, token, photoPaths);
+    const result = await this.portfolioService.create(createPortfolioDto, currentUser.id, photoPaths);
+    return {
+      status: 200,
+      message: 'Data created successfully',
+      data: result,
+    };
   }
 
   @Get()
-  async getPortfolioById(@Query('id') id: number, @Query('token') token: string) {
-    const result = await this.portfolioService.findOneById(id, token);
+  @UseGuards(JwtAuthGuard)
+  async getPortfolioById(@Query('id') id: number) {
+    const result = await this.portfolioService.findOneById(id);
     return {
       status: 200,
       message: 'Get data successfully',
@@ -51,8 +59,10 @@ export class PortofolioController {
   }
 
   @Get('owner')
-  async getPortfoliosByOwner(@Query('token') token: string) {
-    const result = await this.portfolioService.findByOwner(token);
+  @UseGuards(JwtAuthGuard)
+  async getPortfoliosByOwner(@Req() req) {
+    const currentUser = req.user;
+    const result = await this.portfolioService.findByOwner(currentUser.id);
     return {
       status: 200,
       count: result.length,

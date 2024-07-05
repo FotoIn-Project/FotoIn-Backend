@@ -12,8 +12,8 @@ export class Portofolio {
   @Column()
   tags: string;
 
-  @Column()
-  ownerId: string;
+  @Column({type : 'bigint'})
+  ownerId: number;
 
   @OneToMany(() => PortofolioGallery, gallery => gallery.portfolio, { cascade: true })
   gallery: PortofolioGallery[];

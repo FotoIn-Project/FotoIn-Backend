@@ -4,8 +4,7 @@ import { Repository } from 'typeorm';
 import { Portofolio } from './entities/portofolio.entity';
 import { PortofolioGallery } from './entities/portofolio-gallery.entity';
 import { CreatePortofolioDto } from './dto/create-portofolio.dto';
-import { JwtService } from 'src/utils/jwt/jwt.service';
-
+import { JwtService } from '@nestjs/jwt';
 @Injectable()
 export class PortofolioService {
   constructor(
@@ -16,13 +15,11 @@ export class PortofolioService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async create(createPortfolioDto: CreatePortofolioDto, token: string, photoPaths: string[]): Promise<Portofolio> {
-
-    const decoded = await this.jwtService.verifyJwtToken(token);
+  async create(createPortfolioDto: CreatePortofolioDto, currentUserId: number, photoPaths: string[]): Promise<Portofolio> {
 
     const portfolio = this.portfolioRepository.create({
       ...createPortfolioDto,
-      ownerId: decoded.userId,
+      ownerId: currentUserId,
     });
 
     const savedPortfolio = await this.portfolioRepository.save(portfolio);
@@ -43,14 +40,7 @@ export class PortofolioService {
     });
   }
 
-  async findOneById(id: number, token: string): Promise<Portofolio> {
-    if (!id) {
-      throw new BadRequestException('Portfolio ID is required');
-    }
-
-
-    await this.jwtService.verifyJwtToken(token);
-    
+  async findOneById(id: number): Promise<Portofolio> {    
     const portfolio = await this.portfolioRepository.findOne({
       where: { id },
       relations: ['gallery'],
@@ -63,18 +53,14 @@ export class PortofolioService {
     return portfolio;
   }
 
-  async findByOwner(token: string): Promise<Portofolio[]> {
-    const decoded = await this.jwtService.verifyJwtToken(token);
+  async findByOwner(currentUserId: number): Promise<Portofolio[]> {
     const portfolios = await this.portfolioRepository.find({
-      where: { ownerId: decoded.userId },
+      where: { ownerId: currentUserId },
       relations: ['gallery'],
     });
 
-    console.log(portfolios.length);
-    
-
     if (!portfolios || portfolios.length === 0) {
-      throw new NotFoundException(`No portfolios found for user ID ${decoded.userId}`);
+      throw new NotFoundException(`No portfolios found for user ID ${currentUserId}`);
     }
 
     return portfolios;
