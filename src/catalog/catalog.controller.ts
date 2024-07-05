@@ -1,124 +1,176 @@
-import { Controller, Get, Post, Body, Param, Delete, UseInterceptors, UploadedFiles, InternalServerErrorException, UploadedFile, Query, UsePipes, ValidationPipe } from '@nestjs/common';
-import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  UseInterceptors,
+  UploadedFiles,
+  InternalServerErrorException,
+  UploadedFile,
+  Query,
+  UsePipes,
+  ValidationPipe,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+} from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { CatalogService } from './catalog.service';
 import { CreateCatalogDto } from './dto/create-catalog.dto';
 import { extname } from 'path';
 import { CreateReviewDto } from './dto/create-review.dto';
+import { JwtAuthGuard } from 'src/auth/jwt/jwt.auth.guard';
+import { count } from 'console';
 
 @Controller('catalog')
 export class CatalogController {
-    constructor(private readonly catalogService: CatalogService) {}
+  constructor(private readonly catalogService: CatalogService) {}
 
-    @Post()
-    @UseInterceptors(
-        FileFieldsInterceptor(
-            [
-                { name: 'image_1', maxCount: 1 },
-                { name: 'image_2', maxCount: 1 },
-                { name: 'image_3', maxCount: 1 },
-                { name: 'image_4', maxCount: 1 },
-                { name: 'image_5', maxCount: 1 },
-            ],
-            {
-                storage: diskStorage({
-                    destination: './uploads/images',
-                    filename: (req, file, cb) => {
-                        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-                        cb(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`);
-                    },
-                }),
-            },
-        ),
-    )
-    async create(
-        @Body() createCatalogDto: CreateCatalogDto,
-        @UploadedFiles() files: { image_1?: Express.Multer.File[], image_2?: Express.Multer.File[], image_3?: Express.Multer.File[], image_4?: Express.Multer.File[], image_5?: Express.Multer.File[] },
-    ) {
-        try {          
-            if (!files.image_1 || files.image_1.length === 0 || files.image_1 == undefined) {
-                throw new InternalServerErrorException('No file uploaded for image_1');
-            }
-            
-            const imageUrls = [];
-            
-            if (files.image_1) {
-                imageUrls.push(`/uploads/images/${files.image_1[0].filename}`);
-            }
-            if (files.image_2 && files.image_2.length > 0) {
-                imageUrls.push(`/uploads/images/${files.image_2[0].filename}`);
-            }
-            if (files.image_3 && files.image_3.length > 0) {
-                imageUrls.push(`/uploads/images/${files.image_3[0].filename}`);
-            }
-            if (files.image_4 && files.image_4.length > 0) {
-                imageUrls.push(`/uploads/images/${files.image_4[0].filename}`);
-            }
-            if (files.image_5 && files.image_5.length > 0) {
-                imageUrls.push(`/uploads/images/${files.image_5[0].filename}`);
-            }
-
-            const combinedImageUrls = imageUrls.join(',');
-
-            // Simpan URL gabungan dalam DTO
-            createCatalogDto.combinedImageUrls = combinedImageUrls;
-
-            // Simpan catalog ke database
-            return await this.catalogService.create(createCatalogDto);
-        } catch (error) {
-            throw error
-        }
-    }
-
-    @Post('review')
-    @UseInterceptors(
-        FileInterceptor('photo', {
-            storage: diskStorage({
-                destination: './uploads/reviews',
-                filename: (req, file, cb) => {
-                    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-                    cb(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`);
-                },
-            }),
+  @Post()
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [{ name: 'uploads', maxCount: 10 }],
+      {
+        storage: diskStorage({
+          destination: './uploads/images',
+          filename: (req, file, cb) => {
+            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+            cb(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`);
+          },
         }),
-    )
-    async createReview(
-        @Body() createReviewDto: CreateReviewDto,
-        @UploadedFile() file: Express.Multer.File,
-    ) {
-        try {
-            if (!file) {
-                throw new InternalServerErrorException('No file uploaded for photo');
-            }
-            
-            createReviewDto.photo = `/uploads/reviews/${file.filename}`;
+        limits: { fileSize: 5 * 1024 * 1024 }, // 5MB file size limit
+      },
+    ),
+  )
+  @UseGuards(JwtAuthGuard)
+  async create(
+    @Body() createCatalogDto: CreateCatalogDto,
+    @UploadedFiles() files: { uploads?: Express.Multer.File[] },
+    @Req() req
+  ) {
+    try {
+    const currentUser = req.user;
+      if (!files.uploads || files.uploads.length === 0) {
+        throw new InternalServerErrorException('No files uploaded');
+      }
 
-            return await this.catalogService.createReview(createReviewDto);
-        } catch (error) {
-            throw error;
-        }
+      const imageUrls = files.uploads.map(file => `/uploads/images/${file.filename}`);
+      const combinedImageUrls = imageUrls.join(',');
+
+      // Save combined URLs in DTO
+      createCatalogDto.combinedImageUrls = combinedImageUrls;
+      
+      // Save catalog to database
+      const result = await this.catalogService.create(createCatalogDto, currentUser.id);
+      return{
+        statusCode: 200,
+        message: 'Catalog created successfully',
+        data: result
+      }
+    } catch (error) {
+      throw error;
     }
+  }
 
-    @Get()
+  @Post('review')
+  @UseInterceptors(
+    FileInterceptor('photo', {
+      storage: diskStorage({
+        destination: './uploads/reviews',
+        filename: (req, file, cb) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(
+            null,
+            `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`,
+          );
+        },
+      }),
+    }),
+  )
+  @UseGuards(JwtAuthGuard)
+  async createReview(
+    @Body() createReviewDto: CreateReviewDto,
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req
+  ) {
+    try {
+      const currentUser = req.user;
+      if (!file) {
+        throw new InternalServerErrorException('No file uploaded for photo');
+      }
 
-    async findAll(@Query('token') token: string) {
-        try {
-            const catalogs = await this.catalogService.findAll(token);
-            return catalogs;
-        } catch (error) {
-            console.error('Error fetching catalogs:', error);
-            throw new InternalServerErrorException('Failed to fetch catalogs');
-        }
+      createReviewDto.photo = `/uploads/reviews/${file.filename}`;
+
+      const result = await this.catalogService.createReview(createReviewDto, currentUser.id);
+      return {
+        statusCode: 200,
+        message: 'Review created successfully',
+        data: result
+      }   
+    } catch (error) {
+      throw error;
     }
+  }
 
-    @Get(':id')
-    findOne(@Param('id') id: number) {
-        return this.catalogService.findOne(id);
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  async findAll(@Req() req) {
+    try {
+      const result = await this.catalogService.findAll();
+      return {
+        statusCode: 200,
+        message: 'Catalogs retrieved successfully',
+        count : result.length,
+        data: result,
+      };
+    } catch (error) {
+      console.error('Error fetching catalogs:', error);
+      throw new InternalServerErrorException('Failed to fetch catalogs');
     }
+  }
 
-    @Delete(':id')
-    remove(@Param('id') id: number) {
-        return this.catalogService.remove(id);
+  @Get('owner')
+  @UseGuards(JwtAuthGuard)
+  async findByUserId(@Req() req) {
+    const currentUser = req.user;
+    const result = await this.catalogService.findbyOwner(currentUser.id);
+    return {
+      statusCode: 200,
+      message: 'Catalogs retrieved successfully',
+      count: result.length,
+      data: result,
+    };
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async findOne(@Param('id') id: number) {
+    const result = await this.catalogService.findOne(id);
+    return {
+      statusCode: 200,
+      message: 'Catalog retrieved successfully',
+      data: result,
+    };
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  async remove(@Param('id') id: number) {
+    try {
+      await this.catalogService.remove(id);
+      return {
+        statusCode: 200,
+        message: 'Catalog deleted successfully',
+      };
+    } catch (error) {
+      console.error('Error deleting catalog:', error);
+      throw new InternalServerErrorException('Failed to delete catalog');
     }
+  }
 }
-

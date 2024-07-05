@@ -1,34 +1,28 @@
 import { IsString, IsNumber, IsArray, IsDateString, IsNotEmpty } from 'class-validator';
 
 export class CreateCatalogDto {
-    @IsString()
+    @IsNotEmpty()
     title: string;
 
-    @IsNumber()
+    @IsNotEmpty()
     price: number;
 
-    @IsString()
+    @IsNotEmpty()
     description: string;
 
-    @IsString()
-    combinedImageUrls: string;
-
-    @IsArray()
-    @IsString({ each: true })
+    @IsNotEmpty()
     tags: string[];
 
-    @IsDateString()
+    @IsNotEmpty()
     availableDate: Date;
 
-    @IsString()
+    @IsNotEmpty()
     location: string;
 
-    @IsNumber()
+    @IsNotEmpty()
     categoryId: number;
 
-    @IsNotEmpty()
-    @IsString()
-    token : string;
+    combinedImageUrls: string;
 }
 
 

@@ -30,6 +30,9 @@ export class Catalog {
     @Column({ type: 'bigint' })
     ownerId: number;
 
+    @Column({default : true})
+    statusData: boolean;
+
     @OneToMany(() => CatalogGallery, gallery => gallery.catalog, { cascade: true })
     gallery: CatalogGallery[];
 
