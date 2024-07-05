@@ -5,13 +5,12 @@ import { BookingController } from './booking.controller';
 import { Booking } from './entities/booking.entity';
 import { CustomerInformation } from './entities/customer-information.entity';
 import { Catalog } from 'src/catalog/entities/catalog.entity';
-import { JwtService } from 'src/utils/jwt/jwt.service';
 import { ConfigService } from '@nestjs/config';
 import { Review } from 'src/catalog/entities/review.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Booking, CustomerInformation, Catalog, Review])],
   controllers: [BookingController],
-  providers: [BookingService, JwtService, ConfigService],
+  providers: [BookingService, ConfigService],
 })
 export class BookingModule {}
