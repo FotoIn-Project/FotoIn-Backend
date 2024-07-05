@@ -45,7 +45,7 @@ export class AuthService {
       }
   
       // Generate JWT token
-      const payload = { userId: user.id };
+      const payload = { id: user.id };
       const token = await this.jwtService.signAsync(payload);
       this.logger.log(`[login] User ${email} logged in successfully`);
   
