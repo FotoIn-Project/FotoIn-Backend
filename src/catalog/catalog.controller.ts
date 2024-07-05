@@ -48,6 +48,7 @@ export class CatalogController {
     ),
   )
   @UseGuards(JwtAuthGuard)
+  @UsePipes(new ValidationPipe({ whitelist: true }))
   async create(
     @Body() createCatalogDto: CreateCatalogDto,
     @UploadedFiles() files: { uploads?: Express.Multer.File[] },
@@ -94,6 +95,7 @@ export class CatalogController {
     }),
   )
   @UseGuards(JwtAuthGuard)
+  @UsePipes(new ValidationPipe({ whitelist: true }))
   async createReview(
     @Body() createReviewDto: CreateReviewDto,
     @UploadedFile() file: Express.Multer.File,
