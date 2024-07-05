@@ -2,10 +2,10 @@ import { IsNotEmpty } from "class-validator";
 
 export class CreateProfileUserDto {
     @IsNotEmpty()
-    readonly username : string;
+    username : string;
 
     @IsNotEmpty()
-    readonly email : string;
+    email : string;
 
     @IsNotEmpty()
     userId : number;

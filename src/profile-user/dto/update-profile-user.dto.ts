@@ -25,10 +25,6 @@ export class UpdateProfileUserDto {
     @IsEmail()
     email_confirmation?: string;
 
-    @IsNotEmpty()
-    @IsString()
-    token: string;
-
     @IsOptional()
     @IsEmail()
     updated_by?: string;

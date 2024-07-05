@@ -4,7 +4,6 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
-import { JwtService } from 'src/utils/jwt/jwt.service';
 import { Repository } from 'typeorm';
 import { UpdateProfileUserDto } from './dto/update-profile-user.dto';
 import { ProfileUser } from './entities/profile-user.entity';
@@ -17,34 +16,39 @@ export class ProfileUserService {
 
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    private readonly jwtService: JwtService,
   ) {}
 
-  async updateProfile(updateProfileUserDto: UpdateProfileUserDto,): Promise<any> {
-    
-    // Check if the token is valid and not expired
-    const { token, ...updateData } = updateProfileUserDto;
-    const decoded = await this.jwtService.verifyJwtToken(token);
 
-    // Fetch the user details using the access token
-    const user = await this.userRepository.findOne({where : {id : decoded.userId} });
+  async updateProfile(updateProfileUserDto: UpdateProfileUserDto, currentUserId: number): Promise<any> {
+    const { ...updateData } = updateProfileUserDto;
+
+    // Fetch the user details using the current user ID
+    const user = await this.userRepository.findOne({ where: { id: currentUserId } });
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
 
+    // Set the updated_by field to the user's email
     updateData.updated_by = user.email;
 
+    // Fetch the profile using the user relation
+    const profile = await this.profileUserRepository.findOne({ where: { user: { id: currentUserId } } });
+    if (!profile) {
+      throw new UnauthorizedException('Profile not found');;
+    }
+
     // Update the profile
-    await this.profileUserRepository.update({ user: { id: decoded.userId } }, updateData);
+    Object.assign(profile, updateData);
+    await this.profileUserRepository.save(profile);
 
     // Return the updated profile
-    return { message: 'Update profile successfully', statusCode: '200' };
+    return { message: 'Update profile successfully', statusCode: 200 };
   }
 
-  async findProfileByUserId(token: string): Promise<ProfileUser> {
-    const decoded = await this.jwtService.verifyJwtToken(token);
+
+  async findProfileByUserId(currentUserId : number): Promise<ProfileUser> {
     return this.profileUserRepository.findOne({
-      where: { user: { id: decoded.userId } },
+      where: { user: { id: currentUserId } },
     });
   }
 

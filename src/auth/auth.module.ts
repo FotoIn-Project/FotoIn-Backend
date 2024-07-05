@@ -15,7 +15,7 @@ import { JwtAuthGuard } from './jwt/jwt.auth.guard';
   imports: [TypeOrmModule.forFeature([User, ProfileUser]),
   JwtModule.register({
     secret: Buffer.from('eW91ci0yNTYtYml0LXNlY3JldA==', 'base64').toString('ascii'), // Gunakan secret yang sama
-    signOptions: { expiresIn: '60m' },
+    signOptions: { expiresIn: '1h' },
   })],
   controllers: [AuthController],
   providers: [AuthService, ProfileUserService, UsersService, EmailService, JwtStrategy, JwtAuthGuard],
