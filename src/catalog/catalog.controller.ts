@@ -175,4 +175,21 @@ export class CatalogController {
       throw new InternalServerErrorException('Failed to delete catalog');
     }
   }
+
+  @Get('category/:categoryId')
+  @UseGuards(JwtAuthGuard)
+  async findByCategory(@Param('categoryId') categoryId: number) {
+    try {
+      const result = await this.catalogService.findByCategory(categoryId);
+      return {
+        statusCode: 200,
+        message: 'Catalogs retrieved successfully',
+        count: result.length,
+        data: result,
+      };
+    } catch (error) {
+      console.error('Error fetching catalogs by category:', error);
+      throw new InternalServerErrorException('Failed to fetch catalogs by category');
+    }
+  }
 }

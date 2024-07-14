@@ -4,7 +4,6 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { CategorySeeder } from './seeds/category-seeder';
 import { DataSource } from 'typeorm';
-import { existsSync, writeFileSync } from 'fs';
 import * as cors from 'cors';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { ServerOptions } from 'socket.io';
@@ -55,7 +54,6 @@ async function bootstrap() {
   } else {
     console.log('Categories already exist, skipping seeder...');
   }
-  // test
 
   // Serve static assets
   app.useStaticAssets(join(__dirname, '..', 'uploads'));

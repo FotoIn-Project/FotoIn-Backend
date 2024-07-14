@@ -138,6 +138,19 @@ export class CatalogService {
         await this.catalogRepository.save(catalog);
     }
 
+    async findByCategory(categoryId: number): Promise<any[]> {
+      const catalogs = await this.catalogRepository.find({
+        where: { category: { id: categoryId }, statusData: true },
+        relations: ['gallery', 'category', 'reviews', 'reviews.reviewer'],
+      });
+  
+      const results = await Promise.all(catalogs.map(async (catalog) => {
+        return await this.mapCatalogWithReviewsAndProfile(catalog);
+      }));
+  
+      return results;
+    }
+
     private async mapCatalogWithReviewsAndProfile(catalog: Catalog): Promise<any> {
         const profile = await this.profileUserRepository.findOne({ where: { user: { id: catalog.ownerId } } });
     
