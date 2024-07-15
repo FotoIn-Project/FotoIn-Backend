@@ -150,6 +150,23 @@ export class CatalogController {
     };
   }
 
+  @Get('category')
+  @UseGuards(JwtAuthGuard)
+  async findAllCategory() {
+    try {
+      const result = await this.catalogService.findAllCategory();
+      return {
+        statusCode: 200,
+        message: 'Categories retrieved successfully',
+        count: result.length,
+        data: result,
+      };
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      throw new InternalServerErrorException('Failed to fetch categories');
+    }
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   async findOne(@Param('id') id: number) {

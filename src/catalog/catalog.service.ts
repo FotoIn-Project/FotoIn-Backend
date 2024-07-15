@@ -151,6 +151,10 @@ export class CatalogService {
       return results;
     }
 
+    async findAllCategory(): Promise<Category[]> {
+      return await this.categoryRepository.find();
+    }
+
     private async mapCatalogWithReviewsAndProfile(catalog: Catalog): Promise<any> {
         const profile = await this.profileUserRepository.findOne({ where: { user: { id: catalog.ownerId } } });
     
