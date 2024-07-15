@@ -8,6 +8,7 @@ import * as cors from 'cors';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { ServerOptions } from 'socket.io';
 import { Category } from './catalog/entities/category.entity';
+import * as express from 'express';
 
 class CustomIoAdapter extends IoAdapter {
   constructor(app: NestExpressApplication) {
@@ -56,7 +57,8 @@ async function bootstrap() {
   }
 
   // Serve static assets
-  app.useStaticAssets(join(__dirname, '..', 'uploads'));
+  app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
+  // app.useStaticAssets(join(__dirname, '..', 'uploads'));
 
   await app.listen(3000);
 }
