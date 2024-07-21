@@ -14,9 +14,4 @@ export class Category {
 
     @OneToMany(() => Catalog, catalog => catalog.category)
     catalogs: Catalog[];
-
-    @BeforeInsert()
-    generateProfileId() {
-        this.id = new Date().valueOf();
-    }
 }
