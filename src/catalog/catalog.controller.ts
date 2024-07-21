@@ -224,4 +224,21 @@ export class CatalogController {
       );
     }
   }
+
+  @Get('category/top-recommendation/:categoryId')
+  @UseGuards(JwtAuthGuard)
+  async findTopRecommendedByCategory(@Param('categoryId') categoryId: number) {
+    try {
+      const result = await this.catalogService.findTopRecommendedByCategory(categoryId);
+      return {
+        statusCode: 200,
+        message: 'Top recommended catalog retrieved successfully',
+        count : result.length,
+        data: result,
+      };
+    } catch (error) {
+      console.error('Error fetching top recommended catalog:', error);
+      throw new InternalServerErrorException('Failed to fetch top recommended catalog');
+    }
+  }
 }
