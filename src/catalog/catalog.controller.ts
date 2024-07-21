@@ -101,6 +101,7 @@ export class CatalogController {
           );
         },
       }),
+      limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
   @UseGuards(JwtAuthGuard)
@@ -116,7 +117,7 @@ export class CatalogController {
         throw new InternalServerErrorException('No file uploaded for photo');
       }
 
-      createReviewDto.photo = `/uploads/reviews/${file.filename}`;
+      createReviewDto.photo = await this.s3Service.uploadFile(file.path, file.originalname, "review");
 
       const result = await this.catalogService.createReview(
         createReviewDto,
