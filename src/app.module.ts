@@ -17,6 +17,7 @@ import { ChatModule } from './chat/chat.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { BookingModule } from './booking/booking.module';
 import { StoreModule } from './store/store.module';
+import { S3Module } from './s3/s3.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { StoreModule } from './store/store.module';
     TransactionsModule,
     BookingModule,
     StoreModule,
+    S3Module,
   ],
   controllers: [],
   providers: [EmailService, ConfigService],
