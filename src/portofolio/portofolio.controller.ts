@@ -5,10 +5,15 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.auth.guard';
+import { S3Service } from 'src/s3/s3.service';
 
 @Controller('portofolio')
 export class PortofolioController {
-  constructor(private readonly portfolioService: PortofolioService) {}
+  constructor(
+    private readonly portfolioService: PortofolioService,
+    private readonly s3Service: S3Service,
+
+  ) {}
 
   @Post()
   @UseInterceptors(FilesInterceptor('photos', 10, {
@@ -38,7 +43,14 @@ export class PortofolioController {
     @Req() req
   ) {
     const currentUser = req.user;
-    const photoPaths = photos.map((file) => file.filename);
+
+    const photoPaths = await Promise.all(
+      photos.map(async (file) => {
+        const uploadResult = await this.s3Service.uploadFile(file.path, file.originalname, "portofolio");
+        return uploadResult;
+      })
+    );
+
     const result = await this.portfolioService.create(createPortfolioDto, currentUser.id, photoPaths);
     return {
       status: 200,
