@@ -60,6 +60,10 @@ async function bootstrap() {
   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
   // app.useStaticAssets(join(__dirname, '..', 'uploads'));
 
+  //s3 upload
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  
   await app.listen(3000);
 }
 

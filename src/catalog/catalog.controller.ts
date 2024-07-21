@@ -9,7 +9,6 @@ import {
   UploadedFiles,
   InternalServerErrorException,
   UploadedFile,
-  Query,
   UsePipes,
   ValidationPipe,
   UseGuards,
@@ -25,11 +24,13 @@ import { CreateCatalogDto } from './dto/create-catalog.dto';
 import { extname } from 'path';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.auth.guard';
-import { count } from 'console';
-
+import { S3Service } from 'src/s3/s3.service';
 @Controller('catalog')
 export class CatalogController {
-  constructor(private readonly catalogService: CatalogService) {}
+  constructor(
+    private readonly catalogService: CatalogService,
+    private readonly s3Service: S3Service,
+  ) {}
 
   @Post()
   @UseInterceptors(
@@ -37,7 +38,7 @@ export class CatalogController {
       [{ name: 'uploads', maxCount: 10 }],
       {
         storage: diskStorage({
-          destination: './uploads/images',
+          destination: './uploads/catalog',
           filename: (req, file, cb) => {
             const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
             cb(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`);
@@ -52,27 +53,35 @@ export class CatalogController {
   async create(
     @Body() createCatalogDto: CreateCatalogDto,
     @UploadedFiles() files: { uploads?: Express.Multer.File[] },
-    @Req() req
+    @Req() req,
   ) {
     try {
-    const currentUser = req.user;
+      const currentUser = req.user;
       if (!files.uploads || files.uploads.length === 0) {
         throw new InternalServerErrorException('No files uploaded');
       }
 
-      const imageUrls = files.uploads.map(file => `/uploads/images/${file.filename}`);
-      const combinedImageUrls = imageUrls.join(',');
+      const uploadPromises = files.uploads.map(
+        (file) => this.s3Service.uploadFile(file.path, file.originalname, "catalog"), // Upload to S3
+      );
+
+      const fileUrls = await Promise.all(uploadPromises);
+
+      const combinedImageUrls = fileUrls.join(',');
 
       // Save combined URLs in DTO
       createCatalogDto.combinedImageUrls = combinedImageUrls;
-      
+
       // Save catalog to database
-      const result = await this.catalogService.create(createCatalogDto, currentUser.id);
-      return{
+      const result = await this.catalogService.create(
+        createCatalogDto,
+        currentUser.id,
+      );
+      return {
         statusCode: 200,
         message: 'Catalog created successfully',
-        data: result
-      }
+        data: result,
+      };
     } catch (error) {
       throw error;
     }
@@ -99,7 +108,7 @@ export class CatalogController {
   async createReview(
     @Body() createReviewDto: CreateReviewDto,
     @UploadedFile() file: Express.Multer.File,
-    @Req() req
+    @Req() req,
   ) {
     try {
       const currentUser = req.user;
@@ -109,12 +118,15 @@ export class CatalogController {
 
       createReviewDto.photo = `/uploads/reviews/${file.filename}`;
 
-      const result = await this.catalogService.createReview(createReviewDto, currentUser.id);
+      const result = await this.catalogService.createReview(
+        createReviewDto,
+        currentUser.id,
+      );
       return {
         statusCode: 200,
         message: 'Review created successfully',
-        data: result
-      }   
+        data: result,
+      };
     } catch (error) {
       throw error;
     }
@@ -128,7 +140,7 @@ export class CatalogController {
       return {
         statusCode: 200,
         message: 'Catalogs retrieved successfully',
-        count : result.length,
+        count: result.length,
         data: result,
       };
     } catch (error) {
@@ -206,7 +218,9 @@ export class CatalogController {
       };
     } catch (error) {
       console.error('Error fetching catalogs by category:', error);
-      throw new InternalServerErrorException('Failed to fetch catalogs by category');
+      throw new InternalServerErrorException(
+        'Failed to fetch catalogs by category',
+      );
     }
   }
 }
