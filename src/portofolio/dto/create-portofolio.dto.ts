@@ -5,6 +5,6 @@ export class CreatePortofolioDto {
   title: string;
 
   @IsNotEmpty()
-  tags: string;
+  categoryId: number;
 
 }

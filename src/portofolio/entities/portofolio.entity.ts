@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, BeforeInsert } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, BeforeInsert, ManyToOne } from 'typeorm';
 import { PortofolioGallery } from './portofolio-gallery.entity';
+import { Category } from 'src/catalog/entities/category.entity';
 
 @Entity()
 export class Portofolio {
@@ -9,14 +10,14 @@ export class Portofolio {
   @Column()
   title: string;
 
-  @Column()
-  tags: string;
-
   @Column({type : 'bigint'})
   ownerId: number;
 
   @OneToMany(() => PortofolioGallery, gallery => gallery.portfolio, { cascade: true })
   gallery: PortofolioGallery[];
+
+  @ManyToOne(() => Category, category => category.catalogs, {cascade: true})
+  category: Category;
 
   @BeforeInsert()
   generateProfileId() {

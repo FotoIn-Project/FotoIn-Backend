@@ -5,7 +5,7 @@ export class Store {
     @PrimaryGeneratedColumn({ type: 'bigint'})
     id: number;
 
-    @Column()
+    @Column({type: "bigint"})
     userId: number;
 
     @Column()
@@ -18,7 +18,7 @@ export class Store {
     cameraPhoto: string;
 
     @Column()
-    experience: number;
+    experience: string;
 
     @Column()
     cameraUsed: string;

@@ -1,5 +1,5 @@
 // store.service.ts
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Store } from './entities/store.entity';
@@ -12,17 +12,17 @@ export class StoreService {
         private storeRepository: Repository<Store>,
     ) {}
 
-    async create(createStoreDto: CreateStoreDto): Promise<Store> {
+    async create(createStoreDto: CreateStoreDto, userId : number): Promise<Store> {
+        const getStoreByUserId = this.storeRepository.find({where : {userId}})
+        if (getStoreByUserId) {
+            throw new HttpException('Store already exist', HttpStatus.CONFLICT);
+        }
         const store = this.storeRepository.create(createStoreDto);
         return this.storeRepository.save(store);
     }
 
-    async findAll(): Promise<Store[]> {
-        return this.storeRepository.find();
-    }
-
-    async findOne(id: number): Promise<Store> {
-        return this.storeRepository.findOneBy({ id });
+    async findOne(userId: number): Promise<Store> {
+        return this.storeRepository.findOne({ where : {userId}});
     }
 
     async update(id: number, updateStoreDto: Partial<CreateStoreDto>): Promise<Store> {
@@ -30,7 +30,4 @@ export class StoreService {
         return this.findOne(id);
     }
 
-    async remove(id: number): Promise<void> {
-        await this.storeRepository.delete(id);
-    }
 }

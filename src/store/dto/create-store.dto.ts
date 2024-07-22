@@ -5,17 +5,18 @@ export class CreateStoreDto {
     @IsString()
     name: string;
 
+    userId: number;
+
     @IsString()
     companyName: string;
 
-    @IsString()
     cameraPhoto: string;
 
     @IsString()
     cameraUsed: string;
 
-    @IsNumber()
-    experience: number;
+    @IsString()
+    experience: string;
 
     @IsString()
     phoneNumber: string;
@@ -31,9 +32,6 @@ export class CreateStoreDto {
 
     @IsString()
     address: string;
-
-    @IsString()
-    token: string;
 
     @IsOptional()
     @IsString()

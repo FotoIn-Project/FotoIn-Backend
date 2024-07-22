@@ -6,9 +6,10 @@ import { Portofolio } from './entities/portofolio.entity';
 import { PortofolioGallery } from './entities/portofolio-gallery.entity';
 import { ConfigService } from '@nestjs/config';
 import { S3Service } from 'src/s3/s3.service';
+import { Category } from 'src/catalog/entities/category.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Portofolio, PortofolioGallery])],
+  imports: [TypeOrmModule.forFeature([Portofolio, PortofolioGallery, Category])],
   providers: [PortofolioService, ConfigService, S3Service],
   controllers: [PortofolioController],
 })
