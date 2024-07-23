@@ -22,6 +22,9 @@ export class CreateCatalogDto {
     @IsNotEmpty()
     categoryId: number;
 
+    @IsNotEmpty()
+    portofolioId: number;
+
     combinedImageUrls: string;
 }
 

@@ -9,9 +9,10 @@ import { ConfigService } from '@nestjs/config';
 import { ProfileUser } from 'src/profile-user/entities/profile-user.entity';
 import { Review } from './entities/review.entity';
 import { S3Service } from 'src/s3/s3.service';
+import { Portofolio } from 'src/portofolio/entities/portofolio.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Catalog, CatalogGallery, Category, ProfileUser, Review])],
+  imports: [TypeOrmModule.forFeature([Catalog, CatalogGallery, Category, ProfileUser, Review, Portofolio])],
   controllers: [CatalogController],
   providers: [CatalogService, ConfigService, S3Service],
 })

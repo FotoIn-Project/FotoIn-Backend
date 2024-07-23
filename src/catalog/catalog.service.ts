@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Catalog } from './entities/catalog.entity';
 import { CatalogGallery } from './entities/catalog-gallery.entity';
 import { CreateCatalogDto } from './dto/create-catalog.dto';
@@ -13,6 +13,7 @@ import { HttpStatus } from '@nestjs/common/enums';
 import { ProfileUser } from 'src/profile-user/entities/profile-user.entity';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { Review } from './entities/review.entity';
+import { Portofolio } from 'src/portofolio/entities/portofolio.entity';
 
 @Injectable()
 export class CatalogService {
@@ -27,6 +28,8 @@ export class CatalogService {
     private profileUserRepository: Repository<ProfileUser>,
     @InjectRepository(Review)
     private reviewRepository: Repository<Review>,
+    @InjectRepository(Portofolio)
+    private portofolioRepository: Repository<Portofolio>,
   ) {}
 
   async create(
@@ -51,6 +54,16 @@ export class CatalogService {
           throw new HttpException('Category not found', HttpStatus.NOT_FOUND);
         }
         catalog.category = category;
+      }
+
+      if (createCatalogDto.portofolioId) {
+        const portofolio = await this.portofolioRepository.findOne({
+          where: { id: createCatalogDto.portofolioId },
+        });
+        if (!portofolio) {
+          throw new HttpException('Portofolio not found', HttpStatus.NOT_FOUND);
+        }
+        catalog.portofolio = portofolio;
       }
 
       const savedCatalog = await this.catalogRepository.save(catalog);
@@ -106,7 +119,7 @@ export class CatalogService {
   async findAll(): Promise<any[]> {
     const catalogs = await this.catalogRepository.find({
       where: { statusData: true },
-      relations: ['gallery', 'category', 'reviews', 'reviews.reviewer'],
+      relations: ['gallery', 'category', 'reviews', 'reviews.reviewer', 'portofolio', 'portofolio.gallery'],
     });
 
     const results = await Promise.all(
@@ -121,7 +134,7 @@ export class CatalogService {
   async findbyOwner(ownerId: number): Promise<any[]> {
     const catalogs = await this.catalogRepository.find({
       where: { ownerId, statusData: true },
-      relations: ['gallery', 'category', 'reviews', 'reviews.reviewer'],
+      relations: ['gallery', 'category', 'reviews', 'reviews.reviewer',  'portofolio', 'portofolio.gallery'],
     });
 
     const results = await Promise.all(
@@ -136,7 +149,7 @@ export class CatalogService {
   async findOne(id: number): Promise<any> {
     const catalog = await this.catalogRepository.findOne({
       where: { id },
-      relations: ['gallery', 'category', 'reviews', 'reviews.reviewer'],
+      relations: ['gallery', 'category', 'reviews', 'reviews.reviewer',  'portofolio', 'portofolio.gallery'],
     });
 
     if (!catalog) {
@@ -162,6 +175,8 @@ export class CatalogService {
       .leftJoinAndSelect('catalog.category', 'category')
       .leftJoinAndSelect('catalog.reviews', 'reviews')
       .leftJoinAndSelect('reviews.reviewer', 'reviewer')
+      .leftJoinAndSelect('catalog.portofolio', 'portofolio')
+      .leftJoinAndSelect('portofolio.gallery', 'portofolioGallery')
       .where('catalog.statusData = :statusData', { statusData: true });
   
     if (search) {
@@ -190,7 +205,7 @@ export class CatalogService {
   async findTopRecommendedByCategory(categoryId: number): Promise<any[]> {
     const catalogs = await this.catalogRepository.find({
       where: { category: { id: categoryId }, statusData: true },
-      relations: ['gallery', 'category', 'reviews'],
+      relations: ['gallery', 'category', 'reviews', 'portofolio', 'portofolio.gallery'],
     });
 
     if (!catalogs.length) {

@@ -3,6 +3,7 @@ import { CatalogGallery } from './catalog-gallery.entity';
 import { Category } from './category.entity';
 import { Review } from './review.entity';
 import { Booking } from 'src/booking/entities/booking.entity';
+import { Portofolio } from 'src/portofolio/entities/portofolio.entity';
 
 @Entity()
 export class Catalog {
@@ -44,6 +45,9 @@ export class Catalog {
 
     @OneToMany(() => Booking, booking => booking.catalog)
     bookings: Booking[];
+
+    @ManyToOne(() => Portofolio, portofolio => portofolio.catalogs)
+    portofolio: Portofolio;  // Ensure this line is correct  
 
     @CreateDateColumn({ type: 'timestamp' })
     created_at: Date;
