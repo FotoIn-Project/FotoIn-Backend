@@ -65,5 +65,12 @@ export class ChatService {
 
     return result;
   }
+
+  async markChatsAsRead(senderId: number, receiverId: number): Promise<any> {
+    return this.chatRepository.update(
+      { senderId, receiverId, isRead: false }, // Update only unread messages
+      { isRead: true },
+    );
+  }
 }
 

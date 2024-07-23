@@ -8,6 +8,7 @@ import {
   Req,
   BadRequestException,
   Query,
+  Patch,
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { Chat } from './entities/chat.entity';
@@ -59,6 +60,26 @@ export class ChatController {
       statuscode: 201,
       message: 'Chat message created successfully',
       data: result,
+    };
+  }
+
+  @Patch('mark-as-read')
+  @UseGuards(JwtAuthGuard)
+  async markChatsAsRead(
+    @Query('receiverId') receiverId: number,
+    @Req() req,
+  ): Promise<any> {
+    const currentUser = req.user;
+    if (!receiverId) {
+      throw new BadRequestException('Missing receiver ID');
+    }
+    const result = await this.chatService.markChatsAsRead(
+      currentUser.id,
+      receiverId,
+    );
+    return {
+      statuscode: 200,
+      message: 'Chat messages marked as read successfully',
     };
   }
 }
