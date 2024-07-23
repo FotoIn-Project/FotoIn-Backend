@@ -1,19 +1,29 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, BeforeInsert } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  BeforeInsert,
+} from 'typeorm';
 
 @Entity()
 export class Chat {
   @PrimaryGeneratedColumn({ type: 'bigint' })
   id: number;
 
-  @Column()
+  @Column({ type: 'bigint' })
   senderId: number;
 
-  @Column()
+  @Column({ type: 'bigint' })
   receiverId: number;
 
   @Column()
   text: string;
 
+  @Column({ default: false })
+  isRead: boolean;
+  
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
