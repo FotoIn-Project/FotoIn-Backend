@@ -13,6 +13,7 @@ import {
   ValidationPipe,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import {
   FileFieldsInterceptor,
@@ -206,11 +207,12 @@ export class CatalogController {
     }
   }
 
-  @Get('category/:categoryId')
+  @Get('category/search')
   @UseGuards(JwtAuthGuard)
-  async findByCategory(@Param('categoryId') categoryId: number) {
+  async findByCategory(@Query('categoryId') categoryId: number, @Query('search') search: string) {
     try {
-      const result = await this.catalogService.findByCategory(categoryId);
+      // Assuming findByCategory method is updated to handle both category and search parameters
+      const result = await this.catalogService.findBySearchAndCategory(categoryId, search);
       return {
         statusCode: 200,
         message: 'Catalogs retrieved successfully',
@@ -218,9 +220,9 @@ export class CatalogController {
         data: result,
       };
     } catch (error) {
-      console.error('Error fetching catalogs by category:', error);
+      console.error('Error fetching catalogs:', error);
       throw new InternalServerErrorException(
-        'Failed to fetch catalogs by category',
+        'Failed to fetch catalogs',
       );
     }
   }

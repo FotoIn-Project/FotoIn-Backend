@@ -156,20 +156,36 @@ export class CatalogService {
     await this.catalogRepository.save(catalog);
   }
 
-  async findByCategory(categoryId: number): Promise<any[]> {
-    const catalogs = await this.catalogRepository.find({
-      where: { category: { id: categoryId }, statusData: true },
-      relations: ['gallery', 'category', 'reviews', 'reviews.reviewer'],
-    });
+  async findBySearchAndCategory(categoryId: number, search: string,): Promise<any[]> {
+    const query = this.catalogRepository.createQueryBuilder('catalog')
+      .leftJoinAndSelect('catalog.gallery', 'gallery')
+      .leftJoinAndSelect('catalog.category', 'category')
+      .leftJoinAndSelect('catalog.reviews', 'reviews')
+      .leftJoinAndSelect('reviews.reviewer', 'reviewer')
+      .where('catalog.statusData = :statusData', { statusData: true });
+  
+    if (search) {
+      query.andWhere(
+        '(catalog.title LIKE :search OR catalog.location LIKE :search)',
+        { search: `%${search}%` }
+      );
+    }
 
+    if (categoryId) {
+      query.andWhere('catalog.categoryId = :categoryId', { categoryId });
+    }
+  
+    const catalogs = await query.getMany();
+  
     const results = await Promise.all(
       catalogs.map(async (catalog) => {
         return await this.mapCatalogWithReviewsAndProfile(catalog);
       }),
     );
-
+  
     return results;
   }
+  
 
   async findTopRecommendedByCategory(categoryId: number): Promise<any[]> {
     const catalogs = await this.catalogRepository.find({
