@@ -1,5 +1,6 @@
 // src/transactions/transaction.entity.ts
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from 'src/users/entities/user.entity';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 
 @Entity()
 export class Transaction {
@@ -20,4 +21,7 @@ export class Transaction {
 
   @Column()
   transactionTime: Date;
+
+  @ManyToOne(() => User, user => user.transactions)
+  user: User;
 }

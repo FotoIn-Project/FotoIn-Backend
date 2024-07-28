@@ -1,6 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, BeforeInsert, OneToOne } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, BeforeInsert, OneToOne, OneToMany } from "typeorm";
 import { ProfileUser } from "src/profile-user/entities/profile-user.entity";
-
+import { Transaction } from "src/transactions/entities/transactions.entity";
 @Entity()
 export class User {
     @PrimaryGeneratedColumn({type : "bigint"})
@@ -23,6 +23,9 @@ export class User {
 
     @OneToOne(() => ProfileUser, profile => profile.user)
     profile: ProfileUser;
+
+    @OneToMany(() => Transaction, transaction => transaction.user)
+    transactions: Transaction[];
 
     //auditor
     @CreateDateColumn({ type: 'timestamp'})
