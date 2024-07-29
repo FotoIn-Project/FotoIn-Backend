@@ -1,4 +1,7 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateCartDto } from './create-cart.dto';
+import { IsEnum } from "class-validator";
+import { CartItemType } from "./create-cart.dto";
 
-export class UpdateCartDto extends PartialType(CreateCartDto) {}
+export class UpdateCartItemDto {
+    @IsEnum(CartItemType)
+    type: CartItemType;
+}
