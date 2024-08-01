@@ -7,13 +7,13 @@ import { extname } from 'path';
 @Injectable()
 export class S3Service {
   private s3: S3;
-  private bucketName = 'fotoin-storage';
+  private bucketName = 'fotoinlah';
   private endpoint = 'https://is3.cloudhost.id';
 
   constructor() {
     this.s3 = new S3({
-      accessKeyId: 'CQBKUXNL52LK9IUQIUYK',
-      secretAccessKey: 'SBnC5MFC4CcWvfKvPzHBUmuXFYC5TXL7dNtBO445',
+      accessKeyId: 'NUFUG0CJ1CSMMKBS3N92',
+      secretAccessKey: 'FJgIi96mf3xQpBmGZuLzQPZS6mKUaNO7blytSB8i',
       endpoint: this.endpoint,
       s3ForcePathStyle: true,
       signatureVersion: 'v4',
