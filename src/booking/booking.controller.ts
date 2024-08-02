@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, UsePipes, ValidationPipe, Query, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, UsePipes, ValidationPipe, Query, UseGuards, Req, Patch } from '@nestjs/common';
 import { BookingService } from './booking.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { Booking } from './entities/booking.entity';
@@ -32,12 +32,39 @@ export class BookingController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   findAll(): Promise<Booking[]> {
     return this.bookingService.findAll();
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   remove(@Param('id') id: string): Promise<void> {
     return this.bookingService.remove(+id);
+  }
+
+  @Patch('/update-status')
+  @UseGuards(JwtAuthGuard)
+  async changeStatus(
+    @Query('id') id: number,
+    @Body('status') newStatus: string
+  ): Promise<any> {
+    const result = await this.bookingService.changeStatus(id, newStatus);
+    return{
+      statusCode: 200,
+      message: 'Update status successfully',
+      data: result
+    }
+  }
+
+  @Get('status')
+  @UseGuards(JwtAuthGuard)
+  async findByStatus(@Query('status') status: string) {
+    const bookings = await this.bookingService.findByStatus(status);
+    return {
+      statusCode: 200,
+      message: 'Bookings retrieved successfully',
+      data: bookings,
+    };
   }
 }

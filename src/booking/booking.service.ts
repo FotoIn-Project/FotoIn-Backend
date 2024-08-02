@@ -45,7 +45,7 @@ export class BookingService {
       catalogId,
       userBookingId: currentUserId,
       ownerId: catalog.ownerId,
-      status: 'Inprogress',
+      status: 'Appointment',
       customerInformation,
     });
 
@@ -87,5 +87,19 @@ export class BookingService {
     if (result.affected === 0) {
       throw new NotFoundException(`Booking with ID ${id} not found`);
     }
+  }
+
+  async changeStatus(id: number, newStatus: string): Promise<Booking> {
+    const booking = await this.bookingRepository.findOne({where : { id}});
+    if (!booking) {
+      throw new NotFoundException(`Booking with ID ${id} not found`);
+    }
+
+    booking.status = newStatus;
+    return this.bookingRepository.save(booking);
+  }
+
+  async findByStatus(status: string): Promise<Booking[]> {
+    return this.bookingRepository.find({ where: { status }, relations: ['customerInformation', 'catalog'] });
   }
 }
