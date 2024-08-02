@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notification } from './entities/notification.entity';
@@ -8,6 +8,8 @@ import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class NotificationService {
+  private readonly logger = new Logger(NotificationService.name);
+
   constructor(
     @InjectRepository(Notification)
     private notificationRepository: Repository<Notification>,
@@ -17,43 +19,62 @@ export class NotificationService {
   ) {}
 
   async create(createNotificationDto: CreateNotificationDto, currentUserId: number): Promise<Notification> {
-    const { ...notificationData } = createNotificationDto;
+    try {
+      this.logger.log(`[create] Creating a notification for user ${currentUserId}`);
+      const { ...notificationData } = createNotificationDto;
 
-    const user = await this.userRepository.findOne({ where: { id: currentUserId } });
-    if (!user) {
-      throw new Error('User not found');
+      this.logger.log(`[create] Fetching user with ID ${currentUserId}`);
+      const user = await this.userRepository.findOne({ where: { id: currentUserId } });
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      this.logger.log('[create] Creating and saving notification');
+      const notification = this.notificationRepository.create({
+        ...notificationData,
+        from: currentUserId,
+        createdBy: user.email,
+        updatedBy: user.email,
+      });
+
+      return await this.notificationRepository.save(notification);
+    } catch (error) {
+      this.logger.error(`[create] Failed to create notification: ${error.message}`, error.stack);
+      throw error;
     }
-
-    const notification = this.notificationRepository.create({
-      ...notificationData,
-      from: currentUserId,
-      createdBy: user.email,
-      updatedBy: user.email,
-    });
-
-    return await this.notificationRepository.save(notification);
   }
 
   async findByTo(currentUserId: number): Promise<Notification[]> {
-    return await this.notificationRepository.find({ where: { to : currentUserId } });
+    try {
+      this.logger.log(`[findByTo] Fetching notifications for user ${currentUserId}`);
+      return await this.notificationRepository.find({ where: { to : currentUserId } });
+    } catch (error) {
+      this.logger.error(`[findByTo] Failed to fetch notifications for user ${currentUserId}: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   async update(id: number, currentUserId: number): Promise<Notification> {
-    const user = await this.userRepository.findOne({ where: { id: currentUserId } });
-    if (!user) {
-      throw new NotFoundException('User not found');
+    try {
+      this.logger.log(`[update] Updating notification with ID ${id} for user ${currentUserId}`);
+      const user = await this.userRepository.findOne({ where: { id: currentUserId } });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const notification = await this.notificationRepository.findOne({ where: { id } });
+      if (!notification) {
+        throw new NotFoundException('Notification not found');
+      }
+
+      notification.isRead = true;
+      notification.updatedBy = user.email;
+
+      await this.notificationRepository.save(notification);
+      return notification;
+    } catch (error) {
+      this.logger.error(`[update] Failed to update notification with ID ${id}: ${error.message}`, error.stack);
+      throw error;
     }
-
-    const notification = await this.notificationRepository.findOne({ where: { id } });
-    if (!notification) {
-      throw new NotFoundException('Notification not found');
-    }
-
-    notification.isRead = true;
-    notification.updatedBy = user.email;
-
-    await this.notificationRepository.save(notification);
-    return notification;
   }
 }
-

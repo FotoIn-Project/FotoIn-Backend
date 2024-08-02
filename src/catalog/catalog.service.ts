@@ -2,6 +2,7 @@ import {
   HttpException,
   Injectable,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
@@ -17,6 +18,8 @@ import { Portofolio } from 'src/portofolio/entities/portofolio.entity';
 
 @Injectable()
 export class CatalogService {
+  private readonly logger = new Logger(CatalogService.name);
+
   constructor(
     @InjectRepository(Catalog)
     private catalogRepository: Repository<Catalog>,
@@ -37,6 +40,7 @@ export class CatalogService {
     currentUserId: number,
   ): Promise<Catalog> {
     try {
+      this.logger.log(`[create] Creating a catalog for user ${currentUserId}`);
       const catalog = new Catalog();
       catalog.title = createCatalogDto.title;
       catalog.price = createCatalogDto.price;
@@ -47,6 +51,7 @@ export class CatalogService {
       catalog.ownerId = currentUserId;
 
       if (createCatalogDto.categoryId) {
+        this.logger.log(`[create] Fetching category with ID ${createCatalogDto.categoryId}`);
         const category = await this.categoryRepository.findOne({
           where: { id: createCatalogDto.categoryId },
         });
@@ -57,6 +62,7 @@ export class CatalogService {
       }
 
       if (createCatalogDto.portofolioId) {
+        this.logger.log(`[create] Fetching portfolio with ID ${createCatalogDto.portofolioId}`);
         const portofolio = await this.portofolioRepository.findOne({
           where: { id: createCatalogDto.portofolioId },
         });
@@ -66,6 +72,7 @@ export class CatalogService {
         catalog.portofolio = portofolio;
       }
 
+      this.logger.log('[create] Saving the catalog');
       const savedCatalog = await this.catalogRepository.save(catalog);
 
       const imageUrls = createCatalogDto.combinedImageUrls.split(',');
@@ -78,6 +85,7 @@ export class CatalogService {
 
       return savedCatalog;
     } catch (error) {
+      this.logger.error(`[create] Failed to create catalog: ${error.message}`, error.stack);
       throw error;
     }
   }
@@ -86,151 +94,188 @@ export class CatalogService {
     createReviewDto: CreateReviewDto,
     currentUserId: number,
   ): Promise<Review> {
-    const { rating, text, photo, catalogId } = createReviewDto;
+    try {
+      this.logger.log(`[createReview] Creating a review for catalog ${createReviewDto.catalogId} by user ${currentUserId}`);
+      const { rating, text, photo, catalogId } = createReviewDto;
 
-    // Find the catalog by ID
-    const catalog = await this.catalogRepository.findOne({
-      where: { id: catalogId },
-    });
-    if (!catalog) {
-      throw new HttpException('Catalog not found', HttpStatus.NOT_FOUND);
+      const catalog = await this.catalogRepository.findOne({
+        where: { id: catalogId },
+      });
+      if (!catalog) {
+        throw new HttpException('Catalog not found', HttpStatus.NOT_FOUND);
+      }
+
+      const reviewer = await this.profileUserRepository.findOne({
+        where: { user: { id: currentUserId } },
+      });
+      if (!reviewer) {
+        throw new HttpException('Reviewer not found', HttpStatus.NOT_FOUND);
+      }
+
+      const review = new Review();
+      review.rating = rating;
+      review.text = text;
+      review.photo = photo;
+      review.catalog = catalog;
+      review.reviewer = reviewer;
+
+      this.logger.log('[createReview] Saving the review');
+      return this.reviewRepository.save(review);
+    } catch (error) {
+      this.logger.error(`[createReview] Failed to create review: ${error.message}`, error.stack);
+      throw error;
     }
-
-    // Find the reviewer by decoded user ID
-    const reviewer = await this.profileUserRepository.findOne({
-      where: { user: { id: currentUserId } },
-    });
-    if (!reviewer) {
-      throw new HttpException('Reviewer not found', HttpStatus.NOT_FOUND);
-    }
-
-    // Create the review
-    const review = new Review();
-    review.rating = rating;
-    review.text = text;
-    review.photo = photo;
-    review.catalog = catalog;
-    review.reviewer = reviewer;
-
-    // Save the review to the repository
-    return this.reviewRepository.save(review);
   }
 
   async findAll(): Promise<any[]> {
-    const catalogs = await this.catalogRepository.find({
-      where: { statusData: true },
-      relations: ['gallery', 'category', 'reviews', 'reviews.reviewer', 'portofolio', 'portofolio.gallery'],
-    });
+    try {
+      this.logger.log('[findAll] Fetching all catalogs');
+      const catalogs = await this.catalogRepository.find({
+        where: { statusData: true },
+        relations: ['gallery', 'category', 'reviews', 'reviews.reviewer', 'portofolio', 'portofolio.gallery'],
+      });
 
-    const results = await Promise.all(
-      catalogs.map(async (catalog) => {
-        return await this.mapCatalogWithReviewsAndProfile(catalog);
-      }),
-    );
+      const results = await Promise.all(
+        catalogs.map(async (catalog) => {
+          return await this.mapCatalogWithReviewsAndProfile(catalog);
+        }),
+      );
 
-    return results;
+      return results;
+    } catch (error) {
+      this.logger.error(`[findAll] Failed to fetch all catalogs: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   async findbyOwner(ownerId: number): Promise<any[]> {
-    const catalogs = await this.catalogRepository.find({
-      where: { ownerId, statusData: true },
-      relations: ['gallery', 'category', 'reviews', 'reviews.reviewer',  'portofolio', 'portofolio.gallery'],
-    });
+    try {
+      this.logger.log(`[findbyOwner] Fetching catalogs for owner ${ownerId}`);
+      const catalogs = await this.catalogRepository.find({
+        where: { ownerId, statusData: true },
+        relations: ['gallery', 'category', 'reviews', 'reviews.reviewer',  'portofolio', 'portofolio.gallery'],
+      });
 
-    const results = await Promise.all(
-      catalogs.map(async (catalog) => {
-        return await this.mapCatalogWithReviewsAndProfile(catalog);
-      }),
-    );
+      const results = await Promise.all(
+        catalogs.map(async (catalog) => {
+          return await this.mapCatalogWithReviewsAndProfile(catalog);
+        }),
+      );
 
-    return results;
+      return results;
+    } catch (error) {
+      this.logger.error(`[findbyOwner] Failed to fetch catalogs for owner ${ownerId}: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   async findOne(id: number): Promise<any> {
-    const catalog = await this.catalogRepository.findOne({
-      where: { id },
-      relations: ['gallery', 'category', 'reviews', 'reviews.reviewer',  'portofolio', 'portofolio.gallery'],
-    });
+    try {
+      this.logger.log(`[findOne] Fetching catalog with ID ${id}`);
+      const catalog = await this.catalogRepository.findOne({
+        where: { id },
+        relations: ['gallery', 'category', 'reviews', 'reviews.reviewer',  'portofolio', 'portofolio.gallery'],
+      });
 
-    if (!catalog) {
-      throw new InternalServerErrorException('Catalog not found');
+      if (!catalog) {
+        throw new InternalServerErrorException('Catalog not found');
+      }
+
+      return await this.mapCatalogWithReviewsAndProfile(catalog);
+    } catch (error) {
+      this.logger.error(`[findOne] Failed to fetch catalog with ID ${id}: ${error.message}`, error.stack);
+      throw error;
     }
-
-    return await this.mapCatalogWithReviewsAndProfile(catalog);
   }
 
   async remove(id: number): Promise<void> {
-    const catalog = await this.catalogRepository.findOne({ where: { id } });
-    if (!catalog) {
-      throw new HttpException('Catalog not found', HttpStatus.NOT_FOUND);
-    }
+    try {
+      this.logger.log(`[remove] Removing catalog with ID ${id}`);
+      const catalog = await this.catalogRepository.findOne({ where: { id } });
+      if (!catalog) {
+        throw new HttpException('Catalog not found', HttpStatus.NOT_FOUND);
+      }
 
-    catalog.statusData = false;
-    await this.catalogRepository.save(catalog);
+      catalog.statusData = false;
+      await this.catalogRepository.save(catalog);
+    } catch (error) {
+      this.logger.error(`[remove] Failed to remove catalog with ID ${id}: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
-  async findBySearchAndCategory(categoryId: number, search: string,): Promise<any[]> {
-    const query = this.catalogRepository.createQueryBuilder('catalog')
-      .leftJoinAndSelect('catalog.gallery', 'gallery')
-      .leftJoinAndSelect('catalog.category', 'category')
-      .leftJoinAndSelect('catalog.reviews', 'reviews')
-      .leftJoinAndSelect('reviews.reviewer', 'reviewer')
-      .leftJoinAndSelect('catalog.portofolio', 'portofolio')
-      .leftJoinAndSelect('portofolio.gallery', 'portofolioGallery')
-      .where('catalog.statusData = :statusData', { statusData: true });
-  
-    if (search) {
-      query.andWhere(
-        '(catalog.title LIKE :search OR catalog.location LIKE :search)',
-        { search: `%${search}%` }
+  async findBySearchAndCategory(categoryId: number, search: string): Promise<any[]> {
+    try {
+      this.logger.log(`[findBySearchAndCategory] Searching catalogs with category ID ${categoryId} and search term ${search}`);
+      const query = this.catalogRepository.createQueryBuilder('catalog')
+        .leftJoinAndSelect('catalog.gallery', 'gallery')
+        .leftJoinAndSelect('catalog.category', 'category')
+        .leftJoinAndSelect('catalog.reviews', 'reviews')
+        .leftJoinAndSelect('reviews.reviewer', 'reviewer')
+        .leftJoinAndSelect('catalog.portofolio', 'portofolio')
+        .leftJoinAndSelect('portofolio.gallery', 'portofolioGallery')
+        .where('catalog.statusData = :statusData', { statusData: true });
+
+      if (search) {
+        query.andWhere(
+          '(catalog.title LIKE :search OR catalog.location LIKE :search)',
+          { search: `%${search}%` }
+        );
+      }
+
+      if (categoryId) {
+        query.andWhere('catalog.categoryId = :categoryId', { categoryId });
+      }
+
+      const catalogs = await query.getMany();
+
+      const results = await Promise.all(
+        catalogs.map(async (catalog) => {
+          return await this.mapCatalogWithReviewsAndProfile(catalog);
+        }),
       );
-    }
 
-    if (categoryId) {
-      query.andWhere('catalog.categoryId = :categoryId', { categoryId });
+      return results;
+    } catch (error) {
+      this.logger.error(`[findBySearchAndCategory] Failed to search catalogs with category ID ${categoryId} and search term ${search}: ${error.message}`, error.stack);
+      throw error;
     }
-  
-    const catalogs = await query.getMany();
-  
-    const results = await Promise.all(
-      catalogs.map(async (catalog) => {
-        return await this.mapCatalogWithReviewsAndProfile(catalog);
-      }),
-    );
-  
-    return results;
   }
-  
 
   async findTopRecommendedByCategory(categoryId: number): Promise<any[]> {
-    const catalogs = await this.catalogRepository.find({
-      where: { category: { id: categoryId }, statusData: true },
-      relations: ['gallery', 'category', 'reviews', 'portofolio', 'portofolio.gallery'],
-    });
+    try {
+      this.logger.log(`[findTopRecommendedByCategory] Fetching top recommended catalogs for category ID ${categoryId}`);
+      const catalogs = await this.catalogRepository.find({
+        where: { category: { id: categoryId }, statusData: true },
+        relations: ['gallery', 'category', 'reviews', 'portofolio', 'portofolio.gallery'],
+      });
 
-    if (!catalogs.length) {
-      throw new HttpException(
-        'No catalogs found in this category',
-        HttpStatus.NOT_FOUND,
+      if (!catalogs.length) {
+        throw new HttpException(
+          'No catalogs found in this category',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      const results = await Promise.all(
+        catalogs.map(async (catalog) => {
+          return await this.mapCatalogWithReviewsAndProfile(catalog);
+        }),
       );
+
+      results.sort((a, b) => b.averageRating - a.averageRating);
+
+      return results.slice(0, 10);
+    } catch (error) {
+      this.logger.error(`[findTopRecommendedByCategory] Failed to fetch top recommended catalogs for category ID ${categoryId}: ${error.message}`, error.stack);
+      throw error;
     }
-
-    const results = await Promise.all(
-      catalogs.map(async (catalog) => {
-        return await this.mapCatalogWithReviewsAndProfile(catalog);
-      }),
-    );
-
-    // Sort by average rating in descending order
-    results.sort((a, b) => b.averageRating - a.averageRating);
-
-    // Return the top 10 catalogs with the highest ratings
-    return results.slice(0, 10);
   }
 
   private async mapCatalogWithReviewsAndProfile(
     catalog: Catalog,
   ): Promise<any> {
+    this.logger.log(`[mapCatalogWithReviewsAndProfile] Mapping catalog with ID ${catalog.id} with reviews and profile`);
     const profile = await this.profileUserRepository.findOne({
       where: { user: { id: catalog.ownerId } },
     });
@@ -247,11 +292,12 @@ export class CatalogService {
         userId: catalog.ownerId,
         company_name: profile ? profile.company_name : null,
       },
-      averageRating: averageRating.toFixed(2), // Rounded to two decimal places
+      averageRating: averageRating.toFixed(2),
     };
   }
 
   async findAllCategory(): Promise<Category[]> {
+    this.logger.log('[findAllCategory] Fetching all categories');
     return await this.categoryRepository.find();
   }
 }
