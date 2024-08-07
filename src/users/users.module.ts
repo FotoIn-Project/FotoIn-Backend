@@ -8,6 +8,7 @@ import { ProfileUserService } from 'src/profile-user/profile-user.service';
 import { AuthService } from 'src/auth/auth.service';
 import { EmailService } from 'src/utils/email/email.service';
 import { ConfigService } from '@nestjs/config';
+import { WalletTransaction } from 'src/wallet/entities/wallet.entity';
 
 
 @Module({

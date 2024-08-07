@@ -2,6 +2,7 @@ import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateCol
 import { ProfileUser } from "src/profile-user/entities/profile-user.entity";
 import { Transaction } from "src/transactions/entities/transactions.entity";
 import { CartItem } from "src/cart/entities/cart.entity";
+import { WalletTransaction } from "src/wallet/entities/wallet.entity";
 @Entity()
 export class User {
     @PrimaryGeneratedColumn({type : "bigint"})
@@ -30,6 +31,9 @@ export class User {
 
     @OneToMany(() => CartItem, cartItem => cartItem.user)
     cartItems: CartItem[];
+
+    @OneToMany(() => WalletTransaction, (transaction) => transaction.user)
+    wallet: WalletTransaction[];
 
     //auditor
     @CreateDateColumn({ type: 'timestamp'})
