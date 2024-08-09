@@ -45,7 +45,6 @@ export class CatalogService {
       catalog.title = createCatalogDto.title;
       catalog.price = createCatalogDto.price;
       catalog.description = createCatalogDto.description;
-      catalog.tags = createCatalogDto.tags;
       catalog.availableDate = createCatalogDto.availableDate;
       catalog.location = createCatalogDto.location;
       catalog.ownerId = currentUserId;

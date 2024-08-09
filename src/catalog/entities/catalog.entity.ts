@@ -20,11 +20,8 @@ export class Catalog {
     @Column()
     description: string;
 
-    @Column('simple-array')
-    tags: string[];
-
-    @Column('date')
-    availableDate: Date;
+    @Column()
+    availableDate: string;
 
     @Column()
     location: string;

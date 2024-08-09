@@ -11,10 +11,7 @@ export class CreateCatalogDto {
     description: string;
 
     @IsNotEmpty()
-    tags: string[];
-
-    @IsNotEmpty()
-    availableDate: Date;
+    availableDate: string;
 
     @IsNotEmpty()
     location: string;
