@@ -10,6 +10,11 @@ import {
 import { TransactionType, TransactionStatus } from '../dto/create-wallet.dto';
 import { User } from 'src/users/entities/user.entity';
 
+export enum TransactionMethod {
+  BANK_TRANSFER = 'BANK_TRANSFER',
+  // Add other methods as needed
+}
+
 @Entity()
 export class WalletTransaction {
   @PrimaryGeneratedColumn({ type: 'bigint' })
@@ -34,7 +39,17 @@ export class WalletTransaction {
   @Column({ nullable: true })
   proofLink: string;
 
-  //auditor
+  // New fields
+  @Column({ type: 'enum', enum: TransactionMethod })
+  method: TransactionMethod;
+
+  @Column({ nullable: true })
+  accountName: string;
+
+  @Column({ nullable: true })
+  accountNumber: string;
+
+  // Auditor fields
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Date;
 

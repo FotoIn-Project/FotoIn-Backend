@@ -5,6 +5,7 @@ import { WalletTransaction } from './entities/wallet.entity';
 import { CreateWalletTransactionDto, TransactionStatus, TransactionType } from './dto/create-wallet.dto';
 import { UpdateTransactionStatusDto } from './dto/update-wallet.dto';
 import { User } from 'src/users/entities/user.entity';
+import { Catalog } from 'src/catalog/entities/catalog.entity';
 
 @Injectable()
 export class WalletService {
@@ -13,21 +14,78 @@ export class WalletService {
     private readonly walletTransactionRepository: Repository<WalletTransaction>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Catalog)
+    private readonly catalogRepository: Repository<Catalog>,
   ) {}
 
-  async createTransaction(createWalletTransactionDto: CreateWalletTransactionDto, currentUserId: number): Promise<WalletTransaction> {
-    const { type, amount } = createWalletTransactionDto;
+  // async createTransaction(createWalletTransactionDto: CreateWalletTransactionDto, currentUserId: number): Promise<WalletTransaction> {
+  //   const { type, amount } = createWalletTransactionDto;
+  //   const user = await this.userRepository.findOne({ where: { id: currentUserId } });
+  //   if (!user) {
+  //     throw new Error('User not found');
+  //   }
+
+  //   if (type === TransactionType.WITHDRAW) {
+  //     const balance = await this.getBalance(currentUserId);
+  //     if (amount > balance) {
+  //       throw new BadRequestException('Insufficient balance for withdrawal');
+  //     }
+
+  //     const inProgressWithdrawal = await this.walletTransactionRepository.findOne({
+  //       where: {
+  //         user: { id: currentUserId },
+  //         type: TransactionType.WITHDRAW,
+  //         status: TransactionStatus.IN_PROGRESS,
+  //       },
+  //     });
+
+  //     if (inProgressWithdrawal) {
+  //       throw new BadRequestException('There is already a withdrawal in progress');
+  //     }
+  //   }
+
+  //   const status = type === TransactionType.INCOME ? TransactionStatus.APPROVE : TransactionStatus.IN_PROGRESS;
+
+  //   const transaction = this.walletTransactionRepository.create({
+  //     ...createWalletTransactionDto,
+  //     user,
+  //     status
+  //   });
+
+  //   return this.walletTransactionRepository.save(transaction);
+  // }
+
+  async createTransaction(
+    createWalletTransactionDto: CreateWalletTransactionDto,
+    currentUserId: number
+  ): Promise<WalletTransaction> {
+    const { type, catalogId, method, accountName, accountNumber } = createWalletTransactionDto;
+  
+    // Fetch user by currentUserId
     const user = await this.userRepository.findOne({ where: { id: currentUserId } });
     if (!user) {
       throw new Error('User not found');
     }
-
-    if (type === TransactionType.WITHDRAW) {
+  
+    let amount: number;
+  
+    if (type === TransactionType.INCOME) {
+      // Fetch catalog by catalogId
+      const catalog = await this.catalogRepository.findOne({ where: { id: catalogId } });
+      if (!catalog) {
+        throw new BadRequestException('Catalog not found');
+      }
+  
+      // Calculate the amount as catalog price minus 10% of the catalog price
+      amount = catalog.price - catalog.price * 0.1;
+    } else if (type === TransactionType.WITHDRAW) {
+      amount = createWalletTransactionDto.amount;
+  
       const balance = await this.getBalance(currentUserId);
       if (amount > balance) {
         throw new BadRequestException('Insufficient balance for withdrawal');
       }
-
+  
       const inProgressWithdrawal = await this.walletTransactionRepository.findOne({
         where: {
           user: { id: currentUserId },
@@ -35,22 +93,36 @@ export class WalletService {
           status: TransactionStatus.IN_PROGRESS,
         },
       });
-
+  
       if (inProgressWithdrawal) {
         throw new BadRequestException('There is already a withdrawal in progress');
       }
+  
+      // Ensure transfer details are provided
+      if (!method || !accountName || !accountNumber) {
+        throw new BadRequestException('Transfer details are required for withdrawal');
+      }
     }
-
-    const status = type === TransactionType.INCOME ? TransactionStatus.APPROVE : TransactionStatus.IN_PROGRESS;
-
+  
+    // Determine the status based on the transaction type
+    const status = type === TransactionType.INCOME
+      ? TransactionStatus.APPROVE
+      : TransactionStatus.IN_PROGRESS;
+  
+    // Create and save the transaction
     const transaction = this.walletTransactionRepository.create({
       ...createWalletTransactionDto,
+      amount,
       user,
-      status
+      status, // Set the status here
     });
-
+  
     return this.walletTransactionRepository.save(transaction);
   }
+  
+  
+  
+  
 
   async updateTransactionStatus(updateTransactionStatusDto: UpdateTransactionStatusDto): Promise<WalletTransaction> {
     const transaction = await this.walletTransactionRepository.findOne({ where: { id: updateTransactionStatusDto.id } });

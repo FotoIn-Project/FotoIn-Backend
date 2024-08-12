@@ -1,14 +1,18 @@
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export enum TransactionType {
-  INCOME = 1,
-  WITHDRAW = 2,
+  INCOME = 'INCOME',
+  WITHDRAW = 'WITHDRAW',
 }
 
 export enum TransactionStatus {
-  IN_PROGRESS = 1,
-  APPROVE = 2,
-  REJECT = 3,
+  IN_PROGRESS = 'IN_PROGRESS',
+  APPROVE = 'APPROVE',
+  REJECT = 'REJECT',
+}
+
+export enum TransactionMethod {
+  BANK_TRANSFER = 'BANK_TRANSFER',
 }
 
 export class CreateWalletTransactionDto {
@@ -17,9 +21,26 @@ export class CreateWalletTransactionDto {
   @IsEnum(TransactionType)
   type: TransactionType;
 
-  @IsNotEmpty()
-  amount: number;
+  @IsOptional()
+  @IsNumber()
+  catalogId?: number;
 
   @IsOptional()
+  @IsString()
   proofLink?: string;
+
+  @IsOptional()
+  amount : number;
+
+  @IsOptional() // Required only for withdrawal transactions
+  @IsEnum(TransactionMethod)
+  method?: TransactionMethod;
+
+  @IsOptional() // Required only for withdrawal transactions
+  @IsString()
+  accountName?: string;
+
+  @IsOptional() // Required only for withdrawal transactions
+  @IsString()
+  accountNumber?: string;
 }

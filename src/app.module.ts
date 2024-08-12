@@ -18,6 +18,8 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { BookingModule } from './booking/booking.module';
 import { StoreModule } from './store/store.module';
 import { S3Module } from './s3/s3.module';
+import { ReceiptModule } from './receipt/receipt.module';
+import { WalletModule } from './wallet/wallet.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { S3Module } from './s3/s3.module';
       port: 3306,
       username : "fotoin",
       password : "Lampasi0208!",
+      // username : "root",
+      // password : "root",
       database : "fotoin",
       synchronize: true,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
@@ -53,6 +57,8 @@ import { S3Module } from './s3/s3.module';
     BookingModule,
     StoreModule,
     S3Module,
+    ReceiptModule,
+    WalletModule,
   ],
   controllers: [],
   providers: [EmailService, ConfigService],
