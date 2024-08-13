@@ -9,12 +9,18 @@ import { AuthService } from 'src/auth/auth.service';
 import { EmailService } from 'src/utils/email/email.service';
 import { ConfigService } from '@nestjs/config';
 import { WalletTransaction } from 'src/wallet/entities/wallet.entity';
+import { CatalogService } from 'src/catalog/catalog.service';
+import { Catalog } from 'src/catalog/entities/catalog.entity';
+import { CatalogGallery } from 'src/catalog/entities/catalog-gallery.entity';
+import { Category } from 'src/catalog/entities/category.entity';
+import { Review } from 'src/catalog/entities/review.entity';
+import { Portofolio } from 'src/portofolio/entities/portofolio.entity';
 
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, ProfileUser])],
+  imports: [TypeOrmModule.forFeature([User, ProfileUser, Catalog, CatalogGallery, Category, Review, Portofolio])],
   controllers: [UsersController],
-  providers: [UsersService, ProfileUserService, AuthService, EmailService, ConfigService],
+  providers: [UsersService, ProfileUserService, AuthService, EmailService, ConfigService, CatalogService],
   exports: [UsersService, TypeOrmModule],
 })
 export class UsersModule {}

@@ -25,6 +25,9 @@ export class ProfileUser {
 
     @Column({nullable : true})
     email_confirmation : string;
+
+    @Column({default : false})
+    is_admin : boolean;
     
     @OneToOne(() => User, user => user.profile)
     @JoinColumn()

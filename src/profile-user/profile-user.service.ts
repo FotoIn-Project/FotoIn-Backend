@@ -8,6 +8,8 @@ import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { UpdateProfileUserDto } from './dto/update-profile-user.dto';
 import { ProfileUser } from './entities/profile-user.entity';
+import { CatalogService } from 'src/catalog/catalog.service';
+import { Portofolio } from 'src/portofolio/entities/portofolio.entity';
 
 @Injectable()
 export class ProfileUserService {
@@ -19,6 +21,10 @@ export class ProfileUserService {
 
     @InjectRepository(User)
     private userRepository: Repository<User>,
+
+    @InjectRepository(Portofolio)
+    private portfolioRepository: Repository<Portofolio>,
+    private catalogService : CatalogService
   ) {}
 
   async updateProfile(updateProfileUserDto: UpdateProfileUserDto, currentUserId: number): Promise<any> {
@@ -51,15 +57,54 @@ export class ProfileUserService {
     }
   }
 
-  async findProfileByUserId(currentUserId: number): Promise<ProfileUser> {
+  async findProfileByUserId(currentUserId: number): Promise<any> {
     try {
       this.logger.log(`[findProfileByUserId] Fetching profile for user ${currentUserId}`);
-      return await this.profileUserRepository.findOne({
+  
+      const profile = await this.profileUserRepository.findOne({
         where: { user: { id: currentUserId } },
       });
+  
+      if (!profile) {
+        throw new Error(`Profile not found for user ${currentUserId}`);
+      }
+  
+      const countCatalog = await this.catalogService.findbyOwner(currentUserId);
+      const countPorto = await this.getPortfoliosByOwnerId(currentUserId)
+  
+      // Adding countCatalog to the profile response
+      const profileWithCatalog = {
+        ...profile,
+        countCatalog : countCatalog.length,
+        countPorto : countPorto.length
+      };
+  
+      return profileWithCatalog;
     } catch (error) {
       this.logger.error(`[findProfileByUserId] Failed to fetch profile for user ${currentUserId}: ${error.message}`, error.stack);
       throw error;
     }
   }
+
+  async getPortfoliosByOwnerId(ownerId: number): Promise<Portofolio[]> {
+    try {
+      this.logger.log(`[getPortfoliosByOwnerId] Fetching portfolios for owner ${ownerId}`);
+      
+      const portfolios = await this.portfolioRepository.find({
+        where: { ownerId: ownerId },
+      });
+  
+      if (!portfolios || portfolios.length === 0) {
+        this.logger.warn(`[getPortfoliosByOwnerId] No portfolios found for owner ${ownerId}`);
+        return [];
+      }
+  
+      return portfolios;
+    } catch (error) {
+      this.logger.error(`[getPortfoliosByOwnerId] Failed to fetch portfolios for owner ${ownerId}: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+  
+  
 }
