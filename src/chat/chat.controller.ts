@@ -40,7 +40,7 @@ export class ChatController {
     @Req() req,
   ): Promise<any> {
     const currentUser = req.user;
-    const result = await this.chatService.findAllBySenderAndReceiver(
+    const result = await this.chatService.getChatsByRoom(
       currentUser.id,
       receiverId,
     );

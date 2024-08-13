@@ -11,16 +11,31 @@ export class ChatService {
     private chatRepository: Repository<Chat>,
   ) {}
 
-  async findAllBySenderAndReceiver(senderId: number, receiverId: number): Promise<Chat[]> {
-    return this.chatRepository.find({
-      where: [
-        { senderId, receiverId },
-        { senderId: receiverId, receiverId: senderId }
-      ],
-      order: {
-        createdAt: 'ASC'
-      }
-    });
+  async getChatsByRoom(senderId: number, receiverId: number): Promise<any> {
+    try {
+      // this.logger.log(`[getChatsByRoom] Fetching chats between ${senderId} and ${receiverId}`);
+  
+      const chats = await this.chatRepository.find({
+        where: [
+          { senderId: senderId, receiverId: receiverId },
+          { senderId: receiverId, receiverId: senderId }
+        ],
+        order: { createdAt: 'ASC' }
+      });
+  
+      const chatResponses = chats.map(chat => ({
+        id: chat.id,
+        text: chat.text,
+        createdAt: chat.createdAt,
+        position: chat.senderId === senderId ? 'left' : 'right',
+        isRead: chat.isRead
+      }));
+  
+      return chatResponses;
+    } catch (error) {
+      // this.logger.error(`[getChatsByRoom] Failed to fetch chats for room: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   async create(chatData: Partial<Chat>, senderId: number): Promise<Chat> {
