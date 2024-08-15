@@ -94,7 +94,8 @@ export class ProfileUserService {
         bookingCanceled : bookingCanceled.length,
         bookingDone : bookingDone.length,
         country : store.country,
-        city : store.city
+        city : store.city,
+        userId : currentUserId
       };
   
       return profileWithCatalog;
