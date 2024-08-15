@@ -12,6 +12,9 @@ export class ProfileUser {
     name: string;
 
     @Column({nullable : true})
+    country : string;
+
+    @Column({nullable : true})
     province : string;
 
     @Column({nullable : true})

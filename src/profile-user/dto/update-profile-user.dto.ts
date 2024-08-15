@@ -4,7 +4,11 @@ export class UpdateProfileUserDto {
     
     @IsOptional()
     @IsString()
-    company_name?: string;
+    name?: string;
+
+    @IsOptional()
+    @IsString()
+    country?: string;
 
     @IsOptional()
     @IsString()
