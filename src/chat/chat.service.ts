@@ -4,15 +4,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Chat } from './entities/chat.entity';
 import { User } from 'src/users/entities/user.entity';
-import { serialize } from 'v8';
+import { ProfileUser } from 'src/profile-user/entities/profile-user.entity';
 
 @Injectable()
 export class ChatService {
   constructor(
     @InjectRepository(Chat)
     private chatRepository: Repository<Chat>,
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
+    @InjectRepository(ProfileUser)
+    private profileUserRepository: Repository<ProfileUser>,
   ) {}
 
   async getChatsByRoom(senderId: number, receiverId: number): Promise<any> {
@@ -26,24 +26,26 @@ export class ChatService {
         order: { createdAt: 'ASC' }
       });
   
-      // Get sender and receiver user details in parallel
-      const sender = await this.userRepository.findOne({ where : { id : senderId}});
-      const receiver = await this.userRepository.findOne({ where : { id : receiverId}});
+      // Retrieve user information of the receiver (you can adjust this as per your user retrieval logic)
+      const userReceiver = await this.profileUserRepository.findOne({where : { user : { id : receiverId}}});       
   
       // Map the chat responses and add sender name
-      const chatResponses = await Promise.all(chats.map(async chat => {
-        const senderName = chat.senderId === senderId ? sender.profile.company_name : receiver.profile.company_name;
-        return {
-          id: chat.id,
-          text: chat.text,
-          createdAt: chat.createdAt,
-          position: chat.senderId === senderId ? 'left' : 'right',
-          senderName: senderName,
-          isRead: chat.isRead
-        };
+      const chatResponses = chats.map(chat => ({
+        id: chat.id,
+        text: chat.text,
+        createdAt: chat.createdAt,
+        position: chat.senderId === senderId ? 'left' : 'right',
+        isRead: chat.isRead
       }));
   
-      return chatResponses;
+      // Format the response as per the requested structure
+      return {
+          userReceiver: userReceiver ? {
+            id: userReceiver.id,
+            name: userReceiver.company_name,
+          } : null,
+          chat: chatResponses
+      }
     } catch (error) {
       throw error;
     }
