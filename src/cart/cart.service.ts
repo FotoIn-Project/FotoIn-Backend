@@ -73,26 +73,36 @@ export class CartService {
     }
   }
 
-  async findAllByTypeAndUserId(type?: CartItemType, userId?: number): Promise<CartItem[]> {
+  async findAllByTypeAndUserId(type?: CartItemType, userId?: number): Promise<any> {
     try {
       this.logger.log(`[findAllByTypeAndUserId] Fetching cart items with type ${type} for user ${userId}`);
+      
       const query = this.cartRepository.createQueryBuilder('cartItem')
         .leftJoinAndSelect('cartItem.user', 'user')
         .leftJoinAndSelect('cartItem.catalog', 'catalog')
+        .leftJoinAndSelect('catalog.gallery', 'catalogGallery')  // Join catalog gallery
         .where('cartItem.statusData = :statusData', { statusData: true });
-
+  
       if (type !== undefined) {
         query.andWhere('cartItem.type = :type', { type });
       }
-
+  
       if (userId !== undefined) {
         query.andWhere('user.id = :userId', { userId });
       }
-
-      return query.getMany();
+  
+      const cartItems = await query.getMany();
+  
+      // Optional: You can map the cart items to include formatted gallery data if needed
+      const cartItemsWithGallery = cartItems.map(cartItem => ({
+        ...cartItem,
+      }));
+  
+      return cartItemsWithGallery;
     } catch (error) {
       this.logger.error(`[findAllByTypeAndUserId] Failed to fetch cart items: ${error.message}`, error.stack);
       throw error;
     }
   }
+  
 }
