@@ -15,6 +15,7 @@ import { ProfileUser } from 'src/profile-user/entities/profile-user.entity';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { Review } from './entities/review.entity';
 import { Portofolio } from 'src/portofolio/entities/portofolio.entity';
+import { Store } from 'src/store/entities/store.entity';
 
 @Injectable()
 export class CatalogService {
@@ -33,6 +34,9 @@ export class CatalogService {
     private reviewRepository: Repository<Review>,
     @InjectRepository(Portofolio)
     private portofolioRepository: Repository<Portofolio>,
+    @InjectRepository(Store)
+    private storeRepository: Repository<Store>,
+
   ) {}
 
   async create(
@@ -275,8 +279,8 @@ export class CatalogService {
     catalog: Catalog,
   ): Promise<any> {
     this.logger.log(`[mapCatalogWithReviewsAndProfile] Mapping catalog with ID ${catalog.id} with reviews and profile`);
-    const profile = await this.profileUserRepository.findOne({
-      where: { user: { id: catalog.ownerId } },
+    const store = await this.storeRepository.findOne({
+      where: { userId : catalog.ownerId },
     });
 
     const averageRating =
@@ -289,7 +293,7 @@ export class CatalogService {
       ...catalog,
       owner: {
         userId: catalog.ownerId,
-        company_name: profile ? profile.company_name : null,
+        company_name: store ? store.companyName : null,
       },
       averageRating: averageRating.toFixed(2),
     };
