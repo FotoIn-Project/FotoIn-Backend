@@ -10,9 +10,10 @@ import { ProfileUser } from 'src/profile-user/entities/profile-user.entity';
 import { Review } from './entities/review.entity';
 import { S3Service } from 'src/s3/s3.service';
 import { Portofolio } from 'src/portofolio/entities/portofolio.entity';
+import { Store } from 'src/store/entities/store.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Catalog, CatalogGallery, Category, ProfileUser, Review, Portofolio])],
+  imports: [TypeOrmModule.forFeature([Catalog, CatalogGallery, Category, ProfileUser, Review, Portofolio, Store])],
   controllers: [CatalogController],
   providers: [CatalogService, ConfigService, S3Service],
 })
