@@ -59,8 +59,9 @@ export class BookingController {
 
   @Get('status')
   @UseGuards(JwtAuthGuard)
-  async findByStatus(@Query('status') status: string) {
-    const bookings = await this.bookingService.findByStatus(status);
+  async findByStatus(@Query('status') status: string, @Req() req) {
+    const currentUser = req.user
+    const bookings = await this.bookingService.findByStatus(status, currentUser.id);
     return {
       statusCode: 200,
       message: 'Bookings retrieved successfully',

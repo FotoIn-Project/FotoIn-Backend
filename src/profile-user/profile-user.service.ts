@@ -10,6 +10,7 @@ import { UpdateProfileUserDto } from './dto/update-profile-user.dto';
 import { ProfileUser } from './entities/profile-user.entity';
 import { CatalogService } from 'src/catalog/catalog.service';
 import { Portofolio } from 'src/portofolio/entities/portofolio.entity';
+import { Booking } from 'src/booking/entities/booking.entity';
 
 @Injectable()
 export class ProfileUserService {
@@ -24,6 +25,9 @@ export class ProfileUserService {
 
     @InjectRepository(Portofolio)
     private portfolioRepository: Repository<Portofolio>,
+
+    @InjectRepository(Booking)
+    private bookingRepository: Repository<Booking>,
     private catalogService : CatalogService
   ) {}
 
@@ -71,12 +75,22 @@ export class ProfileUserService {
   
       const countCatalog = await this.catalogService.findbyOwner(currentUserId);
       const countPorto = await this.getPortfoliosByOwnerId(currentUserId)
+      
+      //booking
+      const bookingAccepted = await this.bookingRepository.find({ where: { status: "Accepted", ownerId: currentUserId }})
+      const bookingAppointment = await this.bookingRepository.find({ where: { status: "Appointment", ownerId: currentUserId }})
+      const bookingCanceled = await this.bookingRepository.find({ where: { status: "Canceled", ownerId: currentUserId }})
+      const bookingDone = await this.bookingRepository.find({ where: { status: "Done", ownerId: currentUserId }})
   
       // Adding countCatalog to the profile response
       const profileWithCatalog = {
         ...profile,
         countCatalog : countCatalog.length,
-        countPorto : countPorto.length
+        countPorto : countPorto.length,
+        bookingAccepted,
+        bookingAppointment,
+        bookingCanceled,
+        bookingDone
       };
   
       return profileWithCatalog;
@@ -105,6 +119,5 @@ export class ProfileUserService {
       throw error;
     }
   }
-  
   
 }

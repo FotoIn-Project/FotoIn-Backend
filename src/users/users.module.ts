@@ -15,10 +15,11 @@ import { CatalogGallery } from 'src/catalog/entities/catalog-gallery.entity';
 import { Category } from 'src/catalog/entities/category.entity';
 import { Review } from 'src/catalog/entities/review.entity';
 import { Portofolio } from 'src/portofolio/entities/portofolio.entity';
+import { Booking } from 'src/booking/entities/booking.entity';
 
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, ProfileUser, Catalog, CatalogGallery, Category, Review, Portofolio])],
+  imports: [TypeOrmModule.forFeature([User, ProfileUser, Catalog, CatalogGallery, Category, Review, Portofolio, Booking])],
   controllers: [UsersController],
   providers: [UsersService, ProfileUserService, AuthService, EmailService, ConfigService, CatalogService],
   exports: [UsersService, TypeOrmModule],
