@@ -11,6 +11,7 @@ import { ProfileUser } from './entities/profile-user.entity';
 import { CatalogService } from 'src/catalog/catalog.service';
 import { Portofolio } from 'src/portofolio/entities/portofolio.entity';
 import { Booking } from 'src/booking/entities/booking.entity';
+import { Store } from 'src/store/entities/store.entity';
 
 @Injectable()
 export class ProfileUserService {
@@ -19,15 +20,15 @@ export class ProfileUserService {
   constructor(
     @InjectRepository(ProfileUser)
     private profileUserRepository: Repository<ProfileUser>,
-
     @InjectRepository(User)
     private userRepository: Repository<User>,
-
     @InjectRepository(Portofolio)
     private portfolioRepository: Repository<Portofolio>,
-
     @InjectRepository(Booking)
     private bookingRepository: Repository<Booking>,
+    @InjectRepository(Store)
+    private storeRepository: Repository<Store>,
+
     private catalogService : CatalogService
   ) {}
 
@@ -81,6 +82,7 @@ export class ProfileUserService {
       const bookingAppointment = await this.bookingRepository.find({ where: { status: "Appointment", ownerId: currentUserId }})
       const bookingCanceled = await this.bookingRepository.find({ where: { status: "Canceled", ownerId: currentUserId }})
       const bookingDone = await this.bookingRepository.find({ where: { status: "Done", ownerId: currentUserId }})
+      const store = await this.storeRepository.findOne({ where: { userId: currentUserId }})
   
       // Adding countCatalog to the profile response
       const profileWithCatalog = {
@@ -90,7 +92,9 @@ export class ProfileUserService {
         bookingAccepted : bookingAccepted.length,
         bookingAppointment : bookingAppointment.length,
         bookingCanceled : bookingCanceled.length,
-        bookingDone : bookingDone.length
+        bookingDone : bookingDone.length,
+        country : store.country,
+        city : store.city
       };
   
       return profileWithCatalog;

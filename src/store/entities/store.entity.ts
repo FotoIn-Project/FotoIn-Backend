@@ -9,9 +9,6 @@ export class Store {
     userId: number;
 
     @Column()
-    name: string;
-
-    @Column()
     companyName: string;
 
     @Column()

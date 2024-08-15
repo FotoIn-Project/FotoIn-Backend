@@ -9,7 +9,7 @@ export class ProfileUser {
     id : number;
 
     @Column({nullable : true})
-    company_name : string;
+    name: string;
 
     @Column({nullable : true})
     province : string;
