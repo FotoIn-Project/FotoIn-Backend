@@ -87,10 +87,10 @@ export class ProfileUserService {
         ...profile,
         countCatalog : countCatalog.length,
         countPorto : countPorto.length,
-        bookingAccepted,
-        bookingAppointment,
-        bookingCanceled,
-        bookingDone
+        bookingAccepted : bookingAccepted.length,
+        bookingAppointment : bookingAppointment.length,
+        bookingCanceled : bookingCanceled.length,
+        bookingDone : bookingDone.length
       };
   
       return profileWithCatalog;
