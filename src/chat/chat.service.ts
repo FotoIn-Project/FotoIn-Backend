@@ -21,42 +21,6 @@ export class ChatService {
     private storeRepository: Repository<Store>,
   ) {}
 
-  // async getChatsByRoom(senderId: number, receiverId: number): Promise<any> {
-  //   try {
-  //     // Fetching the chats between the sender and receiver
-  //     const chats = await this.chatRepository.find({
-  //       where: [
-  //         { senderId: senderId, receiverId: receiverId },
-  //         { senderId: receiverId, receiverId: senderId }
-  //       ],
-  //       order: { createdAt: 'ASC' }
-  //     });
-  
-  //     // Retrieve user information of the receiver (you can adjust this as per your user retrieval logic)
-  //     const userReceiver = await this.profileUserRepository.findOne({where : { user : { id : receiverId}}});       
-  
-  //     // Map the chat responses and add sender name
-  //     const chatResponses = chats.map(chat => ({
-  //       id: chat.id,
-  //       text: chat.text,
-  //       createdAt: chat.createdAt,
-  //       position: chat.senderId === senderId ? 'left' : 'right',
-  //       isRead: chat.isRead
-  //     }));
-  
-  //     // Format the response as per the requested structure
-  //     return {
-  //         userReceiver: userReceiver ? {
-  //           id: userReceiver.id,
-  //   // name: userReceiver.company_name,
-  //         } : null,
-  //         chat: chatResponses
-  //     }
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // }
-
   async getChatsByRoom(senderId: number, receiverId: number): Promise<any> {
     try {
       // Fetching the chats between the sender and receiver
@@ -89,7 +53,7 @@ export class ChatService {
         id: chat.id,
         text: chat.text,
         createdAt: chat.createdAt,
-        position: chat.senderId === senderId ? 'left' : 'right',
+        position: chat.senderId === senderId ? 'right' : 'left',
         isRead: chat.isRead
       }));
   
@@ -106,27 +70,6 @@ export class ChatService {
     }
   }
   
-  
-
-  // async create(chatData: Partial<Chat>, senderId: number): Promise<Chat> {
-
-  //   if (!chatData || !senderId) {
-  //     throw new BadRequestException('Missing chat data or sender ID');
-  //   }
-
-  //   try {
-  //     const chat = this.chatRepository.create({
-  //       ...chatData,
-  //       senderId,
-  //     });
-  //     return await this.chatRepository.save(chat);
-  //   } catch (error) {
-  //     console.log(error);
-      
-  //     // Log the error or handle it as needed
-  //     throw new BadRequestException('Failed to create chat message');
-  //   }
-  // }
 
   async create(chatData: Partial<Chat>, senderId: number): Promise<Chat> {
     if (!chatData || !senderId) {
