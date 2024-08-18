@@ -25,7 +25,7 @@ export class ChatController {
     if (!senderId) {
       throw new BadRequestException('Missing sender ID');
     }
-    const result = await this.chatService.findLastChatBySender(senderId);
+    const result = await this.chatService.getGroupChat(senderId);
     return {
       statuscode: 200,
       message: 'Last chat messages retrieved successfully',

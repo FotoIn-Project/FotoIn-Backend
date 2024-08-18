@@ -1,5 +1,5 @@
 // src/chat/chat.service.ts
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Chat } from './entities/chat.entity';
@@ -9,6 +9,7 @@ import { Store } from 'src/store/entities/store.entity';
 
 @Injectable()
 export class ChatService {
+  private readonly logger = new Logger(ChatService.name);
   constructor(
     @InjectRepository(Chat)
     private chatRepository: Repository<Chat>,
@@ -107,42 +108,41 @@ export class ChatService {
     }
   }
 
-  async findLastChatBySender(senderId: number): Promise<any[]> {
-    const subQuery = this.chatRepository
+  async getGroupChat(userId: string) {
+    // Creating the main query builder to retrieve the latest chats with chat partner names.
+    const lastChats = await this.chatRepository
       .createQueryBuilder('chat')
-      .select('MAX(chat.createdAt)', 'maxCreatedAt')
-      .addSelect('chat.receiverId', 'receiverId')
-      .where('chat.senderId = :senderId', { senderId })
-      .groupBy('chat.receiverId')
-      .getQuery();
-  
-    const result = await this.chatRepository
-      .createQueryBuilder('chat')
+      .select([
+        'CASE WHEN chat.senderId = :userId THEN chat.receiverId ELSE chat.senderId END AS userId',
+        'profile.name AS chatPartnerName',
+        'chat.text AS text',
+        'chat.createdAt AS createdAt',
+      ])
       .innerJoin(
-        `(${subQuery})`,
-        'lastChat',
-        'chat.receiverId = lastChat.receiverId AND chat.createdAt = lastChat.maxCreatedAt'
+        qb => 
+          qb
+            .subQuery()
+            .select([
+              'CASE WHEN chat.senderId = :userId THEN chat.receiverId ELSE chat.senderId END AS userId',
+              'MAX(chat.createdAt) AS lastMessageTime',
+            ])
+            .from(Chat, 'chat')
+            .where('chat.senderId = :userId OR chat.receiverId = :userId')
+            .groupBy('userId'),
+        'latest',
+        'latest.userId = CASE WHEN chat.senderId = :userId THEN chat.receiverId ELSE chat.senderId END AND chat.createdAt = latest.lastMessageTime',
       )
-      .innerJoin('profile_user', 'profile', 'chat.receiverId = profile.userId')  // Join with the profile table using userId
-      .addSelect('profile.name', 'receiverName')  // Select receiver name from profile
-      .where('chat.senderId = :senderId', { senderId })
+      .innerJoin('profile_user', 'profile', 'profile.userId = CASE WHEN chat.senderId = :userId THEN chat.receiverId ELSE chat.senderId END')
+      .where('chat.senderId = :userId OR chat.receiverId = :userId', { userId })
       .orderBy('chat.createdAt', 'DESC')
-      .getRawMany();  // Change to getRawMany() to include raw selected fields
-  
-    // Modify the result to include receiverName in the response data
-    const responseData = result.map(chat => ({
-      id: chat.chat_id,
-      senderId: chat.chat_senderId,
-      receiverId: chat.chat_receiverId,
-      receiverName: chat.receiverName,  // Include receiver name from profile
-      text: chat.chat_text,
-      isRead: chat.chat_isRead,
-      createdAt: chat.chat_createdAt,
-      updatedAt: chat.chat_updatedAt
-    }));
-  
-    return responseData;
+      .setParameters({ userId }) // Ensure :userId gets the correct value
+      .getRawMany();
+
+    return lastChats;
   }
+  
+
+  
 
   async markChatsAsRead(senderId: number, receiverId: number): Promise<any> {
     return this.chatRepository.update(
