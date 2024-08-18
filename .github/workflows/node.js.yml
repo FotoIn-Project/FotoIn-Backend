@@ -27,8 +27,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       
-      # Install dependencies using npm ci for faster and cleaner install
-      - run: npm ci
 
   build:
     runs-on: self-hosted
