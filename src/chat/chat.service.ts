@@ -53,7 +53,7 @@ export class ChatService {
         id: chat.id,
         text: chat.text,
         createdAt: chat.createdAt,
-        position: chat.senderId === senderId ? 'right' : 'left',
+        position: chat.senderId === senderId ? 'right' : 'left',  //change position
         isRead: chat.isRead
       }));
   
