@@ -82,7 +82,6 @@ export class ProfileUserService {
       const bookingAppointment = await this.bookingRepository.find({ where: { status: "Appointment", ownerId: currentUserId }})
       const bookingCanceled = await this.bookingRepository.find({ where: { status: "Canceled", ownerId: currentUserId }})
       const bookingDone = await this.bookingRepository.find({ where: { status: "Done", ownerId: currentUserId }})
-      const store = await this.storeRepository.findOne({ where: { userId: currentUserId }})
   
       // Adding countCatalog to the profile response
       const profileWithCatalog = {
@@ -93,8 +92,8 @@ export class ProfileUserService {
         bookingAppointment : bookingAppointment.length,
         bookingCanceled : bookingCanceled.length,
         bookingDone : bookingDone.length,
-        country : store.country,
-        city : store.city,
+        province : profile.province,
+        city : profile.city,
         userId : currentUserId
       };
   
