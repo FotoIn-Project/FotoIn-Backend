@@ -106,9 +106,8 @@ export class ChatService {
       throw new BadRequestException('Failed to create chat message');
     }
   }
-  
 
-  async findLastChatBySender(senderId: number): Promise<Chat[]> {
+  async findLastChatBySender(senderId: number): Promise<any[]> {
     const subQuery = this.chatRepository
       .createQueryBuilder('chat')
       .select('MAX(chat.createdAt)', 'maxCreatedAt')
@@ -116,7 +115,7 @@ export class ChatService {
       .where('chat.senderId = :senderId', { senderId })
       .groupBy('chat.receiverId')
       .getQuery();
-
+  
     const result = await this.chatRepository
       .createQueryBuilder('chat')
       .innerJoin(
@@ -124,11 +123,25 @@ export class ChatService {
         'lastChat',
         'chat.receiverId = lastChat.receiverId AND chat.createdAt = lastChat.maxCreatedAt'
       )
+      .innerJoin('profile_user', 'profile', 'chat.receiverId = profile.userId')  // Join with the profile table using userId
+      .addSelect('profile.name', 'receiverName')  // Select receiver name from profile
       .where('chat.senderId = :senderId', { senderId })
       .orderBy('chat.createdAt', 'DESC')
-      .getMany();
-
-    return result;
+      .getRawMany();  // Change to getRawMany() to include raw selected fields
+  
+    // Modify the result to include receiverName in the response data
+    const responseData = result.map(chat => ({
+      id: chat.chat_id,
+      senderId: chat.chat_senderId,
+      receiverId: chat.chat_receiverId,
+      receiverName: chat.receiverName,  // Include receiver name from profile
+      text: chat.chat_text,
+      isRead: chat.chat_isRead,
+      createdAt: chat.chat_createdAt,
+      updatedAt: chat.chat_updatedAt
+    }));
+  
+    return responseData;
   }
 
   async markChatsAsRead(senderId: number, receiverId: number): Promise<any> {
