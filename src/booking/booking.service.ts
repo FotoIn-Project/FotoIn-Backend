@@ -131,10 +131,13 @@ export class BookingService {
   async findByStatus(status: string, currentUserId: number): Promise<Booking[]> {
     try {
       this.logger.log(`[findByStatus] Fetching bookings with status ${status}`);
-      return this.bookingRepository.find({ where: { status, ownerId: currentUserId }, relations: ['customerInformation', 'catalog'] });
+      const bookingByStatus = await this.bookingRepository.find({ where: { status : status, userBookingId: currentUserId }, relations: ['customerInformation', 'catalog'] });
+      return bookingByStatus
+  
     } catch (error) {
       this.logger.error(`[findByStatus] Failed to fetch bookings with status ${status}: ${error.message}`, error.stack);
       throw error;
     }
   }
+
 }
