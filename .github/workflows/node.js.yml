@@ -7,43 +7,22 @@ on:
     branches: [ "production" ]
 
 jobs:
-  install:
+  build:
     runs-on: self-hosted
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
     steps:
       - uses: actions/checkout@v4
-      
-      # Cache node_modules to speed up npm install/ci
-      - name: Cache Node.js modules
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-            
-      # Setup Node.js environment
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      
-
-  build:
-    runs-on: self-hosted
-    needs: install  # Dependent on install job to complete
-    steps:
-      - uses: actions/checkout@v4
-
-      # Reuse cached node_modules (optional, depends on how build is set up)
-      - name: Restore node_modules
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('/package-lock.json') }}
-
-      # Build the project
+          cache: 'npm'
+      - run: npm install
       - run: npm run build
-
-      # Restart the PM2 process only if the build succeeds
+      - run: sudo rm -rf /var/cache/nginx/*
       - run: pm2 restart FotoInAPI
-        if: success()
