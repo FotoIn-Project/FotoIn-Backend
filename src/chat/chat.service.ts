@@ -62,7 +62,9 @@ export class ChatService {
       return {
         userReceiver: userReceiver ? {
           id: userReceiver.id,
-          name: receiverName
+          name: receiverName,
+          province : userReceiver.province,
+          city : userReceiver.city
         } : null,
         chat: chatResponses
       };
