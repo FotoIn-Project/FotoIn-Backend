@@ -6,6 +6,7 @@ import { CreateCartItemDto, CartItemType } from './dto/create-cart.dto';
 import { User } from 'src/users/entities/user.entity';
 import { Catalog } from 'src/catalog/entities/catalog.entity';
 import { UpdateCartItemDto } from './dto/update-cart.dto';
+import { Store } from 'src/store/entities/store.entity';
 
 @Injectable()
 export class CartService {
@@ -18,6 +19,8 @@ export class CartService {
     private userRepository: Repository<User>,
     @InjectRepository(Catalog)
     private catalogRepository: Repository<Catalog>,
+    @InjectRepository(Store)
+    private storeRepository: Repository<Store>,
   ) {}
 
   async create(createCartItemDto: CreateCartItemDto, currentUserId: number): Promise<CartItem> {
@@ -81,6 +84,7 @@ export class CartService {
         .leftJoinAndSelect('cartItem.user', 'user')
         .leftJoinAndSelect('cartItem.catalog', 'catalog')
         .leftJoinAndSelect('catalog.gallery', 'catalogGallery')  // Join catalog gallery
+        .leftJoinAndSelect('catalog.category', 'catalogCategory')  // Join category from catalog
         .where('cartItem.statusData = :statusData', { statusData: true });
   
       if (type !== undefined) {
@@ -93,12 +97,21 @@ export class CartService {
   
       const cartItems = await query.getMany();
   
+      console.log(cartItems);
+      
       // Optional: You can map the cart items to include formatted gallery data if needed
-      const cartItemsWithGallery = cartItems.map(cartItem => ({
-        ...cartItem,
-      }));
+      const cartItemsWithGalleryAndOwner = await Promise.all(
+        cartItems.map(async (cartItem) => {
+          const owner = await this.storeRepository.findOne({ where: { userId: cartItem.user.id } });
+          return {
+            ...cartItem,
+            owner
+          };
+        })
+      );
   
-      return cartItemsWithGallery;
+  
+      return cartItemsWithGalleryAndOwner;
     } catch (error) {
       this.logger.error(`[findAllByTypeAndUserId] Failed to fetch cart items: ${error.message}`, error.stack);
       throw error;
