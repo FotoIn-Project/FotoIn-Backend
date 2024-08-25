@@ -124,13 +124,16 @@ export class ProfileUserService {
         .where('review.catalogId IN (:...catalogIds)', { catalogIds })
         .getRawOne();
 
+        // Check if averageRating is NaN or null and assign a default value of 0
+      const formattedAverageRating = averageRating?.averageRating ? parseFloat(averageRating.averageRating).toFixed(2) : '0.00'; 
+
       // Adding countCatalog to the profile response
       const profileWithCatalog = {
         ...profile,
         countCatalog: countCatalog.length,
         countPorto: countPorto.length,
         totalReviews: reviewCounts,
-        averageRating: parseFloat(averageRating.averageRating).toFixed(2),
+        averageRating: formattedAverageRating,
         bookingAccepted: bookingAccepted.length,
         bookingAppointment: bookingAppointment.length,
         bookingCanceled: bookingCanceled.length,
