@@ -23,7 +23,7 @@ import { Store } from 'src/store/entities/store.entity';
   imports: [TypeOrmModule.forFeature([User, ProfileUser, Catalog, CatalogGallery, Category, Review, Portofolio, Booking, Store]),
   JwtModule.register({
     secret: Buffer.from('eW91ci0yNTYtYml0LXNlY3JldA==', 'base64').toString('ascii'), // Gunakan secret yang sama
-    signOptions: { expiresIn: '1h' },
+    signOptions: { expiresIn: '7d' },
   })],
   controllers: [AuthController],
   providers: [AuthService, ProfileUserService, UsersService, EmailService, JwtStrategy, JwtAuthGuard, CatalogService],
