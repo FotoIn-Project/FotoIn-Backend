@@ -82,67 +82,76 @@ export class ProfileUserService {
       this.logger.log(
         `[findProfileByUserId] Fetching profile for user ${currentUserId}`,
       );
-
+  
       const profile = await this.profileUserRepository.findOne({
         where: { user: { id: currentUserId } },
       });
-
+  
       if (!profile) {
         throw new Error(`Profile not found for user ${currentUserId}`);
       }
-
+  
       const countCatalog = await this.catalogService.findbyOwner(currentUserId);
       const countPorto = await this.getPortfoliosByOwnerId(currentUserId);
-
-      //booking
-      const bookingAccepted = await this.bookingRepository.find({
+  
+      // Booking counts
+      const bookingAccepted = await this.bookingRepository.count({
         where: { status: 'Accepted', ownerId: currentUserId },
       });
-      const bookingAppointment = await this.bookingRepository.find({
+      const bookingAppointment = await this.bookingRepository.count({
         where: { status: 'Appointment', ownerId: currentUserId },
       });
-      const bookingCanceled = await this.bookingRepository.find({
+      const bookingCanceled = await this.bookingRepository.count({
         where: { status: 'Canceled', ownerId: currentUserId },
       });
-      const bookingDone = await this.bookingRepository.find({
+      const bookingDone = await this.bookingRepository.count({
         where: { status: 'Done', ownerId: currentUserId },
       });
-
-      const catalogIds = countCatalog.map((catalog) => catalog.id); // Get all catalog IDs owned by the user
-      // Query to count reviews based on catalog IDs
-      const reviewCounts = await this.reviewRepository.count({
-        where: {
-          catalog: {
-            id: In(catalogIds),
+  
+      // Get catalog IDs owned by the user
+      const catalogIds = countCatalog.map((catalog) => catalog.id);
+  
+      // Only query reviews and average rating if catalogIds is not empty
+      let reviewCounts = 0;
+      let formattedAverageRating = '0.00';
+  
+      if (catalogIds.length > 0) {
+        reviewCounts = await this.reviewRepository.count({
+          where: {
+            catalog: {
+              id: In(catalogIds),
+            },
           },
-        },
-      });
-
-      const averageRating = await this.reviewRepository
-        .createQueryBuilder('review')
-        .select('AVG(review.rating)', 'averageRating')
-        .where('review.catalogId IN (:...catalogIds)', { catalogIds })
-        .getRawOne();
-
+        });
+  
+        const averageRating = await this.reviewRepository
+          .createQueryBuilder('review')
+          .select('AVG(review.rating)', 'averageRating')
+          .where('review.catalogId IN (:...catalogIds)', { catalogIds })
+          .getRawOne();
+  
         // Check if averageRating is NaN or null and assign a default value of 0
-      const formattedAverageRating = averageRating?.averageRating ? parseFloat(averageRating.averageRating).toFixed(2) : '0.00'; 
-
-      // Adding countCatalog to the profile response
+        formattedAverageRating = averageRating?.averageRating
+          ? parseFloat(averageRating.averageRating).toFixed(2)
+          : '0.00';
+      }
+  
+      // Adding countCatalog and other data to the profile response
       const profileWithCatalog = {
         ...profile,
         countCatalog: countCatalog.length,
         countPorto: countPorto.length,
         totalReviews: reviewCounts,
         averageRating: formattedAverageRating,
-        bookingAccepted: bookingAccepted.length,
-        bookingAppointment: bookingAppointment.length,
-        bookingCanceled: bookingCanceled.length,
-        bookingDone: bookingDone.length,
+        bookingAccepted: bookingAccepted,
+        bookingAppointment: bookingAppointment,
+        bookingCanceled: bookingCanceled,
+        bookingDone: bookingDone,
         province: profile.province,
         city: profile.city,
         userId: currentUserId,
       };
-
+  
       return profileWithCatalog;
     } catch (error) {
       this.logger.error(
@@ -152,6 +161,83 @@ export class ProfileUserService {
       throw error;
     }
   }
+  
+
+  // async findProfileByUserId(currentUserId: number): Promise<any> {
+  //   try {
+  //     this.logger.log(
+  //       `[findProfileByUserId] Fetching profile for user ${currentUserId}`,
+  //     );
+
+  //     const profile = await this.profileUserRepository.findOne({
+  //       where: { user: { id: currentUserId } },
+  //     });
+
+  //     if (!profile) {
+  //       throw new Error(`Profile not found for user ${currentUserId}`);
+  //     }
+
+  //     const countCatalog = await this.catalogService.findbyOwner(currentUserId);
+  //     const countPorto = await this.getPortfoliosByOwnerId(currentUserId);
+
+  //     //booking
+  //     const bookingAccepted = await this.bookingRepository.find({
+  //       where: { status: 'Accepted', ownerId: currentUserId },
+  //     });
+  //     const bookingAppointment = await this.bookingRepository.find({
+  //       where: { status: 'Appointment', ownerId: currentUserId },
+  //     });
+  //     const bookingCanceled = await this.bookingRepository.find({
+  //       where: { status: 'Canceled', ownerId: currentUserId },
+  //     });
+  //     const bookingDone = await this.bookingRepository.find({
+  //       where: { status: 'Done', ownerId: currentUserId },
+  //     });
+
+  //     const catalogIds = countCatalog.map((catalog) => catalog.id); // Get all catalog IDs owned by the user
+  //     // Query to count reviews based on catalog IDs
+  //     const reviewCounts = await this.reviewRepository.count({
+  //       where: {
+  //         catalog: {
+  //           id: In(catalogIds),
+  //         },
+  //       },
+  //     });
+
+  //     const averageRating = await this.reviewRepository
+  //       .createQueryBuilder('review')
+  //       .select('AVG(review.rating)', 'averageRating')
+  //       .where('review.catalogId IN (:...catalogIds)', { catalogIds })
+  //       .getRawOne();
+
+  //       // Check if averageRating is NaN or null and assign a default value of 0
+  //     const formattedAverageRating = averageRating?.averageRating ? parseFloat(averageRating.averageRating).toFixed(2) : '0.00'; 
+
+  //     // Adding countCatalog to the profile response
+  //     const profileWithCatalog = {
+  //       ...profile,
+  //       countCatalog: countCatalog.length,
+  //       countPorto: countPorto.length,
+  //       totalReviews: reviewCounts,
+  //       averageRating: formattedAverageRating,
+  //       bookingAccepted: bookingAccepted.length,
+  //       bookingAppointment: bookingAppointment.length,
+  //       bookingCanceled: bookingCanceled.length,
+  //       bookingDone: bookingDone.length,
+  //       province: profile.province,
+  //       city: profile.city,
+  //       userId: currentUserId,
+  //     };
+
+  //     return profileWithCatalog;
+  //   } catch (error) {
+  //     this.logger.error(
+  //       `[findProfileByUserId] Failed to fetch profile for user ${currentUserId}: ${error.message}`,
+  //       error.stack,
+  //     );
+  //     throw error;
+  //   }
+  // }
 
   async getPortfoliosByOwnerId(ownerId: number): Promise<Portofolio[]> {
     try {
