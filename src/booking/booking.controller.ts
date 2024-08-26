@@ -1,4 +1,17 @@
-import { Controller, Get, Post, Body, Param, Delete, UsePipes, ValidationPipe, Query, UseGuards, Req, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  UsePipes,
+  ValidationPipe,
+  Query,
+  UseGuards,
+  Req,
+  Patch,
+} from '@nestjs/common';
 import { BookingService } from './booking.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { Booking } from './entities/booking.entity';
@@ -11,24 +24,29 @@ export class BookingController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe())
-  async create(@Body() createBookingDto: CreateBookingDto, @Req() req): Promise<any> {
+  async create(
+    @Body() createBookingDto: CreateBookingDto,
+    @Req() req,
+  ): Promise<any> {
     const currentUser = req.user;
-    return this.bookingService.create(createBookingDto, currentUser.id).then(result => ({
-      statusCode: 201,
-      message: 'Booking created successfully',
-      data: result
-    }));
+    return this.bookingService
+      .create(createBookingDto, currentUser.id)
+      .then((result) => ({
+        statusCode: 201,
+        message: 'Booking created successfully',
+        data: result,
+      }));
   }
 
   @Get()
   @UseGuards(JwtAuthGuard)
   async findOne(@Query('id') id: string): Promise<any> {
     const result = await this.bookingService.findOne(+id);
-    return{
+    return {
       statusCode: 200,
       message: 'Booking retrieved successfully',
-      data: result
-    }
+      data: result,
+    };
   }
 
   @Get()
@@ -47,21 +65,29 @@ export class BookingController {
   @UseGuards(JwtAuthGuard)
   async changeStatus(
     @Query('id') id: number,
-    @Body('status') newStatus: string
+    @Body('status') newStatus: string,
   ): Promise<any> {
     const result = await this.bookingService.changeStatus(id, newStatus);
-    return{
+    return {
       statusCode: 200,
       message: 'Update status successfully',
-      data: result
-    }
+      data: result,
+    };
   }
 
   @Get('status')
   @UseGuards(JwtAuthGuard)
-  async findByStatus(@Query('status') status: string, @Req() req) {
-    const currentUser = req.user
-    const bookings = await this.bookingService.findByStatus(status, currentUser.id);
+  async findByStatus(
+    @Query('status') status: string,
+    @Query('type') type: number,
+    @Req() req,
+  ) {
+    const currentUser = req.user;
+    const bookings = await this.bookingService.findByStatus(
+      status,
+      type,
+      currentUser.id,
+    );
     return {
       statusCode: 200,
       message: 'Bookings retrieved successfully',

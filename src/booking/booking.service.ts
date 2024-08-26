@@ -128,18 +128,38 @@ export class BookingService {
     }
   }
 
-  async findByStatus(status: string, currentUserId: number): Promise<Booking[]> {
+  async findByStatus(status: string, type: number, currentUserId: number): Promise<Booking[]> {
     try {
-      this.logger.log(`[findByStatus] Fetching bookings with status ${status}`);
-      const bookingByStatus = await this.bookingRepository.find({ where: { status : status, userBookingId: currentUserId }, relations: ['customerInformation', 'catalog'] });
-      return bookingByStatus
+      this.logger.log(`[findByStatus] Fetching bookings with status ${status} and type ${type || 'N/A'}`);
+      
+      let bookingByStatus;
+      console.log(currentUserId);
+      
+      
+      if (type) {
+        bookingByStatus = await this.bookingRepository.find({
+          where: {
+            status: status,
+            ownerId: currentUserId,
+          },
+          relations: ['customerInformation', 'catalog'],
+        });
+      } else {
+        bookingByStatus = await this.bookingRepository.find({
+          where: {
+            status: status,
+            userBookingId: currentUserId,
+          },
+          relations: ['customerInformation', 'catalog'],
+        });
+      }
+      
+      return bookingByStatus;
   
     } catch (error) {
-      this.logger.error(`[findByStatus] Failed to fetch bookings with status ${status}: ${error.message}`, error.stack);
+      this.logger.error(`[findByStatus] Failed to fetch bookings with status ${status} and type ${type || 'N/A'}: ${error.message}`, error.stack);
       throw error;
     }
   }
-
-  //edit booking
 
 }
