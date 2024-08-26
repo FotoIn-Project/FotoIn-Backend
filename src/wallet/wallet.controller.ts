@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Get, Param, Patch, Query, UsePipes, ValidationPipe, UseGuards, Req } from '@nestjs/common';
 import { WalletService } from './wallet.service';
-import { CreateWalletTransactionDto } from './dto/create-wallet.dto';
+import { CreateWalletTransactionDto, TransactionStatus } from './dto/create-wallet.dto';
 import { UpdateTransactionStatusDto } from './dto/update-wallet.dto';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.auth.guard';
 
@@ -71,8 +71,8 @@ export class WalletController {
 
   @Get('withdraw/inprogress')
   @UseGuards(JwtAuthGuard)
-  async getWithdrawInProgress() {
-    const inProgressWithdrawals = await this.walletService.getWithdrawInProgress();
+  async getWithdrawInProgress(@Query('status') status: TransactionStatus) {
+    const inProgressWithdrawals = await this.walletService.getWithdrawByStatus(status);
     return {
       statusCode: 200,
       message: 'Withdrawals in progress retrieved successfully',

@@ -239,11 +239,12 @@ export class WalletService {
     });
   }
 
-  async getWithdrawInProgress(): Promise<WalletTransaction[]> {
+  async getWithdrawByStatus(status: TransactionStatus): Promise<WalletTransaction[]> {
     return this.walletTransactionRepository.find({
-      where: { type: TransactionType.WITHDRAW, status: TransactionStatus.IN_PROGRESS },
+      where: { type: TransactionType.WITHDRAW, status: status },
       relations: ['user'],
       order: { created_at: 'DESC' },
     });
   }
+  
 }
