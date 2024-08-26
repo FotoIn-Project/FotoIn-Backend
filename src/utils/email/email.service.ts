@@ -6,8 +6,8 @@ export class EmailService {
   private transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: 'fajrulichsan0208@gmail.com',  //TODO pindah ke .env
-      pass: 'xoty evqi sghp uxtj' 
+      user: 'officialfotoin@gmail.com',  //TODO pindah ke .env
+      pass: 'jjwi jnnu nbzn jopy' 
     }
   });
 
@@ -26,7 +26,7 @@ export class EmailService {
 
   private async sendEmail(to: string, subject: string, html: string): Promise<void> {
     const mailOptions = {
-      from: 'eurekademy@gmail.com',
+      from: 'officialfotoin@gmail.com',
       to,
       subject,
       html
