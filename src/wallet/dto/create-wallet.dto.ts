@@ -43,4 +43,8 @@ export class CreateWalletTransactionDto {
   @IsOptional() // Required only for withdrawal transactions
   @IsString()
   accountNumber?: string;
+  
+  @IsOptional() // Required only for withdrawal transactions
+  @IsString()
+  bankName?: string;
 }

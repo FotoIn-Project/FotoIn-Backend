@@ -49,6 +49,9 @@ export class WalletTransaction {
   @Column({ nullable: true })
   accountNumber: string;
 
+  @Column({ nullable: true })
+  bankName: string;
+
   // Auditor fields
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Date;
