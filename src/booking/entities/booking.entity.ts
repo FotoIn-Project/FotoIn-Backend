@@ -27,7 +27,6 @@ export class Booking {
   @JoinColumn({ name: 'catalogId' })
   catalog: Catalog;
 
-
   @BeforeInsert()
   generateProfileId() {
       this.id = new Date().valueOf();
